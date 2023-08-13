@@ -1,1 +1,3 @@
-# boga_bot
+# BogaBot
+
+`python main.py``
