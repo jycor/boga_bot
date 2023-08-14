@@ -10,8 +10,8 @@ intents = discord.Intents.all()
 intents.message_content = True
 bot = commands.Bot(command_prefix='/', intents=intents, help_command=None)
 
-ALEX_ID = os.environ['ALEX_ID']
-JAMES_ID = os.environ['JAMES_ID']
+ALEX_ID = os.environ['ALEX_USER_ID']
+JAMES_ID = os.environ['JAMES_USER_ID']
 
 is_bullying = False
 bullyee_id = None
@@ -22,7 +22,7 @@ async def on_ready():
   print("I'm in")
   print(bot.user)
 
-  debug_channel_id = int(os.environ['DEBUG_CHANNEL_SECRET'])
+  debug_channel_id = int(os.environ['DEBUG_CHANNEL_ID'])
   debug_channel = bot.get_channel(debug_channel_id)
   await debug_channel.send("I am alive")
 
@@ -125,5 +125,5 @@ async def test(ctx):
   print("TESTING2")
   await ctx.reply("AMONGUS")
 
-my_secret = os.environ['DISCORD_BOT_SECRET']
+my_secret = os.environ['DISCORD_BOT_API_KEY']
 bot.run(my_secret)
