@@ -6,7 +6,7 @@ from discord.ext import commands, tasks
 # If no tzinfo is given then UTC is assumed.
 pst = ZoneInfo(key='America/Los_Angeles')
 time = time(hour=8, minute=0, tzinfo=pst)
-japan_date = datetime(2023, 8, 23, tzinfo=pst)
+japan_date = datetime(2025, 1, 1, tzinfo=pst)
 
 class TaskCog(commands.Cog):
 
@@ -21,15 +21,9 @@ class TaskCog(commands.Cog):
   async def my_task(self):
     my_secret = int(os.environ['DISCORD_CHANNEL_SECRET'])
     ctx = self.bot.get_channel(my_secret)  # this is general chat.
-    today = datetime.today().astimezone(pst)
-    if today < japan_date:
-      message = str((japan_date - today).days) + " more days till Japan. :airplane: :flag_jp:"
-      await ctx.send(message)
-    else:
-      # TODO: We are in Japan for x more days?
-      await ctx.send("We are in Japan!!!")
+    await ctx.send("Good morning everyone!")
 
-  def generate_countdown():
+  def generate_countdown(): # Keep in case of 
     today = datetime.today().astimezone(pst)
 
     diff = japan_date - today
