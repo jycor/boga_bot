@@ -5,6 +5,7 @@ from discord.ext import commands
 
 import urban_dict
 from daily_task import TaskCog
+from datetime import datetime
 
 intents = discord.Intents.all()
 intents.message_content = True
@@ -17,6 +18,9 @@ JAMES_ID = os.environ['JAMES_USER_ID']
 async def on_ready():
   print("I'm in")
   print(bot.user)
+
+  global start_time
+  start_time = datetime.now()
 
   debug_channel_id = int(os.environ['DEBUG_CHANNEL_ID'])
   debug_channel = bot.get_channel(debug_channel_id)
