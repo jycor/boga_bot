@@ -5,6 +5,7 @@ from discord.ext import commands
 
 import urban_dict
 from daily_task import TaskCog
+from datetime import datetime
 
 intents = discord.Intents.all()
 intents.message_content = True
@@ -16,11 +17,15 @@ JAMES_ID = os.environ['JAMES_USER_ID']
 is_bullying = False
 bullyee_id = None
 
+start_time = None
 
 @bot.event
 async def on_ready():
   print("I'm in")
   print(bot.user)
+
+  global start_time
+  start_time = datetime.now()
 
   debug_channel_id = int(os.environ['DEBUG_CHANNEL_ID'])
   debug_channel = bot.get_channel(debug_channel_id)
@@ -108,6 +113,16 @@ async def ask(ctx, question: str):
   else:
     await ctx.send("> {0}\nno".format(question))
 
+
+@bot.hybrid_command(name="uptime", description="time when bot started")
+async def uptime(ctx):
+  global start_time
+  diff = datetime.now() - start_time
+  days = diff.days
+  hours, rem = divmod(diff.seconds, 3600)
+  minutes, seconds = divmod(rem, 60)
+  diff_str = "{0} days, {1} hours, {2} minutes, {3} seconds".format(days, hours, minutes, seconds)
+  await ctx.send("Start at `{0}`.\nI've been up for `{1}`".format(start_time, diff_str))
 
 @bot.hybrid_command()
 async def boga(ctx, arg: str):
