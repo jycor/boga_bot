@@ -6,6 +6,7 @@ from discord.ext import commands
 import urban_dict
 from daily_task import TaskCog
 from datetime import datetime
+import ask_cmd
 
 intents = discord.Intents.all()
 intents.message_content = True
@@ -68,15 +69,12 @@ async def japan(ctx):
   days, hours, minutes, seconds = TaskCog.generate_countdown()
   msg = "{0} days, {1} hours, {2} minutes, {3} seconds till Japan :airplane: :flag_jp:".format(days, hours, minutes, seconds)
   await ctx.send(msg)
-  
 
-# TODO: improve the responses; include a maybe
+
 @bot.hybrid_command(name="ask", description="truthfully answers a question with yes or no")
 async def ask(ctx, question: str):
-  if random.random() < 0.5:
-    await ctx.send("> {0}\nyes".format(question))
-  else:
-    await ctx.send("> {0}\nno".format(question))
+  res = ask_cmd.ask(question)
+  await ctx.send(res)
 
 my_secret = os.environ['DISCORD_BOT_API_KEY']
 bot.run(my_secret)
