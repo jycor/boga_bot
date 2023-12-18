@@ -14,11 +14,6 @@ bot = commands.Bot(command_prefix='/', intents=intents, help_command=None)
 ALEX_ID = os.environ['ALEX_USER_ID']
 JAMES_ID = os.environ['JAMES_USER_ID']
 
-is_bullying = False
-bullyee_id = None
-
-start_time = None
-
 @bot.event
 async def on_ready():
   print("I'm in")
@@ -33,35 +28,6 @@ async def on_ready():
 
   cog = TaskCog(bot)
   await bot.add_cog(cog, override=False)
-
-
-@bot.event
-async def on_message(msg):
-  global is_bullying, bullyee_id
-  if not is_bullying or msg.author.id == bot.user.id or msg.author.id != bullyee_id:
-    await bot.process_commands(msg)
-    return
-  if msg.content[0] == '/':
-    await bot.process_commands(msg)
-    return
-  await msg.reply("hey fucker")
-
-
-@bot.hybrid_command(name="bully", description="bully this person")
-async def bully(ctx, id: discord.Member):
-  global is_bullying, bullyee_id
-  is_bullying = True
-  bullyee_id = id
-  print(bullyee_id)
-
-
-#@bot.hybrid_command(name="stop-bully", description="no more bullying")
-@bot.command()
-async def stop_bully(ctx):
-  global is_bullying, bullyee_id
-  is_bullying = False
-  bullyee_id = None
-  print("no more bullying")
 
 
 @bot.command()
@@ -85,7 +51,7 @@ async def urban(ctx, term: str = commands.parameter(default="", description="typ
   if len(term) > 0:
     try:
       defn = urban_dict.define(term)
-      await ctx.send(term + " is: \n" + defn)
+      await ctx.send("{0} is:\n{1}".format(term, defn))
     except:
       await ctx.send("I don't know what {0} is".format(term))
   else:
@@ -100,45 +66,17 @@ async def meme_video(ctx):
 @bot.hybrid_command(name="japan", description="wack wrapper japan countdown")
 async def japan(ctx):
   days, hours, minutes, seconds = TaskCog.generate_countdown()
-  await ctx.send(
-    str(days) + " days, " + str(hours) + " hours, " + str(minutes) +
-    " minutes, " + str(seconds) + " seconds till Japan :airplane: :flag_jp:")
+  msg = "{0} days, {1} hours, {2} minutes, {3} seconds till Japan :airplane: :flag_jp:".format(days, hours, minutes, seconds)
+  await ctx.send(msg)
+  
 
-
-@bot.hybrid_command(name="ask",
-                    description="truthfully answers a question with yes or no")
+# TODO: improve the responses; include a maybe
+@bot.hybrid_command(name="ask", description="truthfully answers a question with yes or no")
 async def ask(ctx, question: str):
   if random.random() < 0.5:
     await ctx.send("> {0}\nyes".format(question))
   else:
     await ctx.send("> {0}\nno".format(question))
-
-
-@bot.hybrid_command(name="uptime", description="time when bot started")
-async def uptime(ctx):
-  global start_time
-  diff = datetime.now() - start_time
-  days = diff.days
-  hours, rem = divmod(diff.seconds, 3600)
-  minutes, seconds = divmod(rem, 60)
-  diff_str = "{0} days, {1} hours, {2} minutes, {3} seconds".format(days, hours, minutes, seconds)
-  await ctx.send("Start at `{0}`.\nI've been up for `{1}`".format(start_time, diff_str))
-
-@bot.hybrid_command()
-async def boga(ctx, arg: str):
-  await ctx.send("BOGABOGA")
-
-
-@bot.hybrid_command(name='testing', description='test command with parameters')
-async def test_command(ctx, param1: str, param2: int = 69):
-  print("TESTING")
-  await ctx.send(param1 + str(param2))
-
-
-@bot.command()
-async def test(ctx):
-  print("TESTING2")
-  await ctx.reply("AMONGUS")
 
 my_secret = os.environ['DISCORD_BOT_API_KEY']
 bot.run(my_secret)
