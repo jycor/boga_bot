@@ -6,6 +6,7 @@ from discord.ext import commands
 import urban_dict
 from daily_task import TaskCog
 from datetime import datetime
+from boba_math import boba_calc
 import ask_cmd
 
 intents = discord.Intents.all()
@@ -80,6 +81,11 @@ async def japan(ctx):
 async def ask(ctx, question: str):
   res = ask_cmd.ask(question)
   await ctx.send(res)
+
+@bot.hybrid_command(name="boba", description="Calculate price based off boba")
+async def boba(ctx, value: str):
+  result = boba_calc(value)
+  await ctx.send(result)
 
 my_secret = os.environ['DISCORD_BOT_API_KEY']
 bot.run(my_secret)
