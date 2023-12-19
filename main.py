@@ -51,12 +51,17 @@ async def urban(ctx, term: str = commands.parameter(default="", description="typ
   term = term.strip().lower()
   if len(term) > 0:
     try:
-      defn = urban_dict.define(term)
-      await ctx.send("{0} is:\n{1}".format(term, defn))
+      result = urban_dict.define(term)
+      await ctx.send(result)
     except:
       await ctx.send("I don't know what {0} is".format(term))
   else:
     await ctx.send("Please add a phrase")
+
+@bot.hybrid_command(name="random", description="random urban dictionary word")
+async def random(ctx):
+  result = urban_dict.random()
+  await ctx.send(result)
 
 
 @bot.hybrid_command(name="meme", description="Watch this video.")
