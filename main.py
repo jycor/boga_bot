@@ -88,5 +88,10 @@ async def boba(ctx, value: str):
   result = boba_calc(value)
   await ctx.send(result)
 
+@bot.hybrid_command(name="bully", description="Mess around with somebody. ")
+async def bully(ctx, name: str):
+  result = bully(name)
+  await ctx.send(result)
+
 my_secret = os.environ['DISCORD_BOT_API_KEY']
 bot.run(my_secret)
