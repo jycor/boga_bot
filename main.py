@@ -1,8 +1,9 @@
 import os
-import random
 import discord
+from datetime import datetime
 from discord.ext import commands
 
+import ask_cmd
 import urban_dict
 from daily_task import TaskCog
 from datetime import datetime
@@ -59,8 +60,8 @@ async def urban(ctx, term: str = commands.parameter(default="", description="typ
   else:
     await ctx.send("Please add a phrase")
 
-@bot.hybrid_command(name="random", description="random urban dictionary word")
-async def random(ctx):
+@bot.hybrid_command(name="randword", description="random urban dictionary word")
+async def randword(ctx):
   result = urban_dict.random()
   await ctx.send(result)
 
