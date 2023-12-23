@@ -66,6 +66,12 @@ async def randword(ctx):
   await ctx.send(result)
 
 
+@bot.hybrid_command(name="wordoftheday", description="daily word")
+async def randword(ctx):
+  result = urban_dict.word_of_the_day()
+  await ctx.send(result)
+
+
 @bot.hybrid_command(name="meme", description="Watch this video.")
 async def meme_video(ctx):
   await ctx.send("https://www.instagram.com/p/Ct_icUhuYn7/")
