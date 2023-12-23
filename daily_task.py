@@ -25,12 +25,13 @@ class TaskCog(commands.Cog):
 
   @tasks.loop(time=t)
   async def my_task(self):
-    my_secret = int(os.environ['DISCORD_CHANNEL_SECRET'])
+    my_secret = int(os.environ['WACK_WRAPPERS_CHANNEL_ID'])
     ctx = self.bot.get_channel(my_secret)  # this is general chat.
+    urban_dict.reset_word_of_the_day()
 
     greeting = "Good morning everyone!"
-    daily_word = "The Word of the Day is:\n{0}".format(urban_dict.word_of_the_day())
-    msg = "{0}\n{1}".format(greeting, daily_word)
+    daily_word_msg = "The Word of the Day is:\n{0}".format(urban_dict.word_of_the_day())
+    msg = "{0}\n{1}".format(greeting, daily_word_msg)
 
     await ctx.send(msg)
 
