@@ -36,6 +36,7 @@ def random():
   result = format(resp_json['list'][0])
   return result
 
+
 def reset_word_of_the_day():
   global daily_word
   daily_word = None
