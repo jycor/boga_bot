@@ -11,6 +11,8 @@ headers = {
   'x-rapidapi-host': "mashape-community-urban-dictionary.p.rapidapi.com"
 }
 
+daily_word = None
+
 def format(entry):
   word = entry['word']
   defn = entry['definition']
@@ -36,8 +38,8 @@ def random():
 
 
 def word_of_the_day():
-  url = "https://mashape-community-urban-dictionary.p.rapidapi.com/words"
-  response = requests.request("GET", url, headers=headers)
-  resp_json = response.json()
-  word = resp_json['word']
-  return word
+  global daily_word
+  if daily_word is not None:
+    return daily_word
+  daily_word = random()
+  return daily_word
