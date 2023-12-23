@@ -100,7 +100,7 @@ async def boba(ctx, value: str):
 
 @bot.hybrid_command(name="yt-trending", description="#1 trending video on youtube")
 async def yt_trending(ctx):
-  res = youtube.get_most_popular()
+  res = youtube.get_trending()
   msg = "The #1 trending video on youtube is:\n{0}".format(res)
   await ctx.send(msg)
 

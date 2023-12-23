@@ -6,8 +6,9 @@ DEVELOPER_KEY = os.environ['YOUTUBE_API_KEY']
 youtube = googleapiclient.discovery.build('youtube', 'v3', developerKey=DEVELOPER_KEY)
 
 # TODO: cache responses to reduce api calls?
-# get_most_popular() returns the #1 trending video on youtube.
-def get_most_popular():
+# TODO: get n trending videos?
+# get_trending() returns the #1 trending video on youtube.
+def get_trending():
     req = youtube.videos().list(
         part="snippet",
         chart="mostPopular",
