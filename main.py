@@ -5,6 +5,7 @@ from discord.ext import commands
 
 import ask_cmd
 import urban_dict
+import youtube
 from daily_task import TaskCog
 from datetime import datetime
 from boba_math import boba_calc
@@ -60,6 +61,7 @@ async def urban(ctx, term: str = commands.parameter(default="", description="typ
   else:
     await ctx.send("Please add a phrase")
 
+
 @bot.hybrid_command(name="randword", description="random urban dictionary word")
 async def randword(ctx):
   result = urban_dict.random()
@@ -89,10 +91,19 @@ async def ask(ctx, question: str):
   res = ask_cmd.ask(question)
   await ctx.send(res)
 
+
 @bot.hybrid_command(name="boba", description="Calculate price based off boba")
 async def boba(ctx, value: str):
-  result = boba_calc(value)
-  await ctx.send(result)
+  res = boba_calc(value)
+  await ctx.send(res)
+
+
+@bot.hybrid_command(name="yt-trending", description="#1 trending video on youtube")
+async def yt_trending(ctx):
+  res = youtube.get_trending()
+  msg = "The #1 trending video on youtube is:\n{0}".format(res)
+  await ctx.send(msg)
+
 
 my_secret = os.environ['DISCORD_BOT_API_KEY']
 bot.run(my_secret)

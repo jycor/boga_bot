@@ -3,6 +3,7 @@ from datetime import time, datetime, timedelta
 from zoneinfo import ZoneInfo
 
 import urban_dict
+import youtube
 
 from discord.ext import commands, tasks
 
@@ -31,7 +32,8 @@ class TaskCog(commands.Cog):
 
     greeting = "Good morning everyone!"
     daily_word_msg = "The Word of the Day is:\n{0}".format(urban_dict.word_of_the_day())
-    msg = "{0}\n{1}".format(greeting, daily_word_msg)
+    daily_yt_vid = "The #1 trending video on YouTube is:\n{0}".format(youtube.get_trending())
+    msg = "{0}\n{1}\n{2}".format(greeting, daily_word_msg, daily_yt_vid)
 
     await ctx.send(msg)
 
