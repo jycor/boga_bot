@@ -43,6 +43,17 @@ async def sync(ctx):
   else:
     await ctx.send('You must be the owner to use this command!')
 
+@bot.command()
+async def echo(ctx, *, args):
+  if ctx.author.id == int(ALEX_ID) or ctx.author.id == int(JAMES_ID):
+    source_channel = int(os.environ['DEBUG_CHANNEL_ID'])
+    target_channel =  int(os.environ['WACK_WRAPPERS_CHANNEL_ID'])
+    if ctx.channel.id == source_channel:
+      newctx = bot.get_channel(target_channel)
+      await newctx.send(args)
+    else:
+      await ctx.send('it broke')
+
 
 @bot.hybrid_command(name="help", description="a helpful command")
 async def help(ctx):
