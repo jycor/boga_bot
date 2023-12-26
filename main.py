@@ -49,9 +49,8 @@ async def echo(ctx, *, args):
     source_channel = int(os.environ['DEBUG_CHANNEL_ID'])
     target_channel =  int(os.environ['WACK_WRAPPERS_CHANNEL_ID'])
     if ctx.channel.id == source_channel:
-      phrase = args.split(',')[0]
       newctx = bot.get_channel(target_channel)
-      await newctx.send(phrase)
+      await newctx.send(args)
     else:
       await ctx.send('it broke')
 
