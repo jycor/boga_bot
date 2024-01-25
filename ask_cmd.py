@@ -3,9 +3,9 @@ import random
 # TODO: add more variety to responses; potentially through a context-free grammar
 def ask(question: str):
     odds = random.random()
-    if odds < 0.01:
+    if odds < 0.10:
         answer = "maybe"
-    elif odds < 0.505:
+    elif odds < 0.55:
         answer = "yes"
     else:
         answer = "no"
