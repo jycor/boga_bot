@@ -97,6 +97,17 @@ async def japan(ctx):
   await ctx.send(msg)
 
 
+@bot.hybrid_command(name="uptime", description="time when bot started")
+async def uptime(ctx):
+  global start_time
+  diff = datetime.now() - start_time
+  days = diff.days
+  hours, rem = divmod(diff.seconds, 3600)
+  minutes, seconds = divmod(rem, 60)
+  diff_str = "{0} days, {1} hours, {2} minutes, {3} seconds".format(days, hours, minutes, seconds)
+  await ctx.send("I was started at `{0}`.\nI've been up for `{1}`.".format(start_time, diff_str))
+
+
 @bot.hybrid_command(name="ask", description="truthfully answers a question with yes or no")
 async def ask(ctx, question: str):
   res = ask_cmd.ask(question)
