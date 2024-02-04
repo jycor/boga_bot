@@ -1,6 +1,6 @@
 import os
 from datetime import time, datetime, timedelta
-from zoneinfo import ZoneInfo
+import pytz
 
 import urban_dict
 import youtube
@@ -8,7 +8,7 @@ import youtube
 from discord.ext import commands, tasks
 
 # If no tzinfo is given then UTC is assumed.
-pst = ZoneInfo(key='America/Los_Angeles')
+pst = pytz.timezone('US/Pacific')
 t = time(hour=8, tzinfo=pst)
 # USE THIS FOR DEBUGGING
 # dt = datetime.now() + timedelta(seconds=10)
