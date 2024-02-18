@@ -1,4 +1,5 @@
 import discord
+from discord import FFmpegPCMAudio
 from discord.ext import commands
 from datetime import datetime
 
@@ -12,6 +13,7 @@ import japan_cmd
 
 intents = discord.Intents.all()
 intents.message_content = True
+intents.voice_states = True
 bot = commands.Bot(command_prefix='/', intents=intents, help_command=None)
 
 @bot.event
@@ -119,5 +121,43 @@ async def yt_trending(ctx):
   msg = "The #1 trending video on youtube is:\n{0}".format(res)
   await ctx.send(msg)
 
+
+@bot.command(name="join", description="Join the voice channel you're currently in")
+async def join_voice(ctx):
+  if not ctx.author.voice or not ctx.author.voice.channel:
+    await ctx.send("You must be in a voice channel to use this command.")
+    return
+  
+  channel = ctx.author.voice.channel
+  
+  # TODO: remove this
+  # VOICE_CH_ID = 1134982696691568743
+  # channel = bot.get_channel(VOICE_CH_ID)
+
+  await channel.connect()
+
+@bot.command(name="play", description="Play a song in the voice channel")
+async def play_song(ctx, url: str):
+  if not ctx.author.voice or not ctx.author.voice.channel:
+    await ctx.send("You must be in a voice channel to use this command.")
+    return
+  
+  if not ctx.voice_client:
+    await ctx.send("I'm not currently in a voice channel.")
+    return
+  
+  voice_client = ctx.voice_client
+  # TODO: replace with ffmpeg executable on server
+  ffmpeg_exec = "C:\\Program Files\\ffmpeg\\bin\\ffmpeg.exe"
+  voice_client.play(FFmpegPCMAudio(executable=ffmpeg_exec, source=url), after=lambda e: print('done', e))
+  
+
+
+@bot.command(name="leave", description="Make the bot leave the voice channel")
+async def leave_voice(ctx):
+  if not ctx.voice_client:
+    await ctx.send("I'm not currently in a voice channel.")
+    return
+  await ctx.send("Bye bye!")
 
 bot.run(consts.API_KEY)
