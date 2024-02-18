@@ -1,48 +1,27 @@
-import os
-from datetime import time, datetime, timedelta
-import pytz
+from discord.ext import tasks
 
-import urban_dict
+from datetime import datetime, timezone, timedelta, time
+
+import consts
 import youtube
+import urban_dict
 
-from discord.ext import commands, tasks
+pst = timezone(timedelta(hours=-8))
+daily_msg_time = time(hour=8, tzinfo=pst)
 
-# If no tzinfo is given then UTC is assumed.
-pst = pytz.timezone('US/Pacific')
-t = time(hour=8, tzinfo=pst)
-# USE THIS FOR DEBUGGING
+# USE THIS FOR TESTING
 # dt = datetime.now() + timedelta(seconds=10)
-# t = time(hour=dt.hour, minute=dt.minute, second=dt.second, tzinfo=pst)
-japan_date = datetime(2025, 1, 1, tzinfo=pst)
+# daily_msg_time = time(hour=dt.hour, minute=dt.minute, second=dt.second, tzinfo=pst)
 
-class TaskCog(commands.Cog):
+@tasks.loop(time=daily_msg_time)
+async def send_daily_msg(bot):
+  ctx = bot.get_channel(consts.GENERAL_CH_ID)
 
-  def __init__(self, bot):
-    self.bot = bot
-    self.my_task.start()
+  urban_dict.reset_word_of_the_day()
 
-  def cog_unload(self):
-    self.my_task.cancel()
+  greeting = "Good morning everyone!"
+  daily_word_msg = "The Word of the Day is:\n{0}".format(urban_dict.word_of_the_day())
+  daily_yt_vid = "The #1 trending video on YouTube is:\n{0}".format(youtube.get_trending())
+  msg = "{0}\n{1}\n{2}".format(greeting, daily_word_msg, daily_yt_vid)
 
-  @tasks.loop(time=t)
-  async def my_task(self):
-    my_secret = int(os.environ['WACK_WRAPPERS_CHANNEL_ID'])
-    ctx = self.bot.get_channel(my_secret)  # this is general chat.
-    urban_dict.reset_word_of_the_day()
-
-    greeting = "Good morning everyone!"
-    daily_word_msg = "The Word of the Day is:\n{0}".format(urban_dict.word_of_the_day())
-    daily_yt_vid = "The #1 trending video on YouTube is:\n{0}".format(youtube.get_trending())
-    msg = "{0}\n{1}\n{2}".format(greeting, daily_word_msg, daily_yt_vid)
-
-    await ctx.send(msg)
-
-  def generate_countdown(): # Keep in case of 
-    today = datetime.today().astimezone(pst)
-
-    diff = japan_date - today
-    days = diff.days
-    hours, rem = divmod(diff.seconds, 3600)
-    minutes, seconds = divmod(rem, 60)
-
-    return days, hours, minutes, seconds
+  await ctx.send(msg)

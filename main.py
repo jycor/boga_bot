@@ -1,22 +1,18 @@
-import os
 import discord
-from datetime import datetime
 from discord.ext import commands
+from datetime import datetime
 
+import consts
 import ask_cmd
 import urban_dict
 import youtube
-from daily_task import TaskCog
-from datetime import datetime
-from boba_math import boba_calc
-import ask_cmd
+import boba_math
+import daily_task
+import japan_cmd
 
 intents = discord.Intents.all()
 intents.message_content = True
 bot = commands.Bot(command_prefix='/', intents=intents, help_command=None)
-
-ALEX_ID = os.environ['ALEX_USER_ID']
-JAMES_ID = os.environ['JAMES_USER_ID']
 
 @bot.event
 async def on_ready():
@@ -26,30 +22,27 @@ async def on_ready():
   global start_time
   start_time = datetime.now()
 
-  debug_channel_id = int(os.environ['DEBUG_CHANNEL_ID'])
-  debug_channel = bot.get_channel(debug_channel_id)
-  await debug_channel.send("I am alive")
+  daily_task.send_daily_msg.start(bot)
 
-  cog = TaskCog(bot)
-  await bot.add_cog(cog, override=False)
+  debug_channel = bot.get_channel(consts.DEBUG_CH_ID)
+  await debug_channel.send("I am alive")
 
 
 @bot.command()
 async def sync(ctx):
   print("sync command")
-  if ctx.author.id == int(ALEX_ID) or ctx.author.id == int(JAMES_ID):
+  if ctx.author.id == consts.ALEX_ID or ctx.author.id == consts.JAMES_ID:
     await bot.tree.sync()
     await ctx.send('Command tree synced.')
   else:
     await ctx.send('You must be the owner to use this command!')
 
+
 @bot.command()
 async def echo(ctx, *, args):
-  if ctx.author.id == int(ALEX_ID) or ctx.author.id == int(JAMES_ID):
-    source_channel = int(os.environ['DEBUG_CHANNEL_ID'])
-    target_channel =  int(os.environ['WACK_WRAPPERS_CHANNEL_ID'])
-    if ctx.channel.id == source_channel:
-      newctx = bot.get_channel(target_channel)
+  if ctx.author.id == consts.ALEX_ID or ctx.author.id == consts.JAMES_ID:
+    if ctx.channel.id == consts.DEBUG_CH_ID:
+      newctx = bot.get_channel(consts.GENERAL_CH_ID)
       await newctx.send(args)
     else:
       await ctx.send('it broke')
@@ -57,7 +50,7 @@ async def echo(ctx, *, args):
 
 @bot.hybrid_command(name="help", description="a helpful command")
 async def help(ctx):
-  await ctx.send('ask <@{0}>'.format(str(ALEX_ID)))
+  await ctx.send('ask <@{0}>'.format(consts.ALEX_ID))
 
 
 @bot.hybrid_command(name="urban", description="define a word")
@@ -80,7 +73,7 @@ async def randword(ctx):
 
 
 @bot.hybrid_command(name="wordoftheday", description="daily word")
-async def randword(ctx):
+async def wordoftheday(ctx):
   result = urban_dict.word_of_the_day()
   await ctx.send(result)
 
@@ -92,7 +85,7 @@ async def meme_video(ctx):
 
 @bot.hybrid_command(name="japan", description="wack wrapper japan countdown")
 async def japan(ctx):
-  days, hours, minutes, seconds = TaskCog.generate_countdown()
+  days, hours, minutes, seconds = japan_cmd.countdown()
   msg = "{0} days, {1} hours, {2} minutes, {3} seconds till Japan :airplane: :flag_jp:".format(days, hours, minutes, seconds)
   await ctx.send(msg)
 
@@ -116,7 +109,7 @@ async def ask(ctx, question: str):
 
 @bot.hybrid_command(name="boba", description="Calculate price based off boba")
 async def boba(ctx, value: str):
-  res = boba_calc(value)
+  res = boba_math.calc(value)
   await ctx.send(res)
 
 
@@ -127,5 +120,4 @@ async def yt_trending(ctx):
   await ctx.send(msg)
 
 
-my_secret = os.environ['DISCORD_BOT_API_KEY']
-bot.run(my_secret)
+bot.run(consts.API_KEY)

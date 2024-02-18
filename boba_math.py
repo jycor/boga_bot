@@ -3,8 +3,7 @@ import re
 pattern = r'^\$?\d+(,\d{3})*(\.[0-9]{2})?$'
 
 from math import ceil
-def boba_calc(amount: str):
-    
+def calc(amount: str):
     if not re.match(pattern, amount):
         return "Please use a proper price: " + amount
     
@@ -19,5 +18,3 @@ def boba_calc(amount: str):
         amount = "$" + amount
 
     return "When you pay {0}, that's about {1} bobas! Isn't that concerning?".format(amount, conversion)
-    
-    
