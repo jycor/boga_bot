@@ -124,15 +124,15 @@ async def yt_trending(ctx):
 
 @bot.command(name="join", description="Join the voice channel you're currently in")
 async def join_voice(ctx):
-  if not ctx.author.voice or not ctx.author.voice.channel:
-    await ctx.send("You must be in a voice channel to use this command.")
-    return
+  # if not ctx.author.voice or not ctx.author.voice.channel:
+  #   await ctx.send("You must be in a voice channel to use this command.")
+  #   return
   
-  channel = ctx.author.voice.channel
+  # channel = ctx.author.voice.channel
   
   # TODO: remove this
-  # VOICE_CH_ID = 1134982696691568743
-  # channel = bot.get_channel(VOICE_CH_ID)
+  VOICE_CH_ID = 1134982696691568743
+  channel = bot.get_channel(VOICE_CH_ID)
 
   await channel.connect()
 
