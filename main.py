@@ -122,7 +122,9 @@ async def yt_trending(ctx):
 
 @bot.event
 async def on_message(message):
-  if bot.user.mentioned_in(message) and not message.author.bot:
+  if message.author.bot:
+    return
+  if bot.user.mentioned_in(message):
     response = geminiapi.generate_gemini_response(message.content)
     await message.channel.send(response, reference=message)
 
