@@ -9,6 +9,7 @@ import youtube
 import boba_math
 import daily_task
 import japan_cmd
+import geminiapi
 
 intents = discord.Intents.all()
 intents.message_content = True
@@ -118,6 +119,17 @@ async def yt_trending(ctx):
   res = youtube.get_trending()
   msg = "The #1 trending video on youtube is:\n{0}".format(res)
   await ctx.send(msg)
+
+@bot.event
+async def on_message(message):
+  if message.author.bot:
+    return
+  if bot.user.mentioned_in(message):
+    try:
+      response = geminiapi.generate_gemini_response(message.content)
+      await message.channel.send(response, reference=message)
+    except:
+      await message.channel.send("Your query had issues, try again or ask something else :(", reference=message)
 
 
 bot.run(consts.API_KEY)
