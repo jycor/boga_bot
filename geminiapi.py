@@ -1,7 +1,4 @@
-import pathlib
-import textwrap
 from consts import GOOGLE_API_KEY
-# Used to securely store your API key
 import google.generativeai as genai
 
 genai.configure(api_key=GOOGLE_API_KEY)
