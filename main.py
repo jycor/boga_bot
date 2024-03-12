@@ -125,7 +125,11 @@ async def on_message(message):
   if message.author.bot:
     return
   if bot.user.mentioned_in(message):
-    response = geminiapi.generate_gemini_response(message.content)
-    await message.channel.send(response, reference=message)
+    try:
+      response = geminiapi.generate_gemini_response(message.content)
+      await message.channel.send(response, reference=message)
+    except:
+      await message.channel.send("Your query had issues, try again or ask something else :(", reference=message)
+
 
 bot.run(consts.API_KEY)
