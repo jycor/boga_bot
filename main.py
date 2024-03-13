@@ -122,14 +122,27 @@ async def yt_trending(ctx):
 
 @bot.event
 async def on_message(message):
+  # ignore messages from the bot
   if message.author.bot:
     return
-  if bot.user.mentioned_in(message):
-    try:
-      response = geminiapi.generate_gemini_response(message.content)
-      await message.channel.send(response, reference=message)
-    except:
-      await message.channel.send("Your query had issues, try again or ask something else :(", reference=message)
+  
+  # possible text commands
+  cmd = message.content.split(" ")[0]
+  match cmd:
+    case "/sync":
+      ctx = await bot.get_context(message)
+      await sync(ctx)
+      return
+    case "/echo":
+      ctx = await bot.get_context(message)
+      await echo(ctx, args=message.content[6:])
+      return
 
+  # ignore messages that don't mention the bot
+  if not bot.user.mentioned_in(message):
+    return
+
+  response = geminiapi.generate_gemini_response(message.content)
+  await message.channel.send(response, reference=message)
 
 bot.run(consts.API_KEY)
