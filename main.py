@@ -11,6 +11,7 @@ import daily_task
 import japan_cmd
 import geminiapi
 import uwuify
+import gifgenerate
 
 intents = discord.Intents.all()
 intents.message_content = True
@@ -143,6 +144,13 @@ async def on_message(message):
       ctx = await bot.get_context(message)
       await echo(ctx, args=message.content[6:])
       return
+    case "/randgif": # Leave in case of integration testing. Won't make as hybrid command cause just used for daily announcement. 
+      ctx = await bot.get_context(message)
+      gif = gifgenerate.generate_gif()
+      if gif:
+        await message.channel.send(gif)
+      else:
+        await message.channel.send("Gif failed.")
 
   # ignore messages that don't mention the bot
   if not bot.user.mentioned_in(message):
