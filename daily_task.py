@@ -1,6 +1,6 @@
 from discord.ext import tasks
 from zoneinfo import ZoneInfo
-from datetime import datetime, timezone, timedelta, time
+from datetime import datetime, timedelta, time
 
 import consts
 import youtube
