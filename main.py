@@ -10,6 +10,7 @@ import boba_math
 import daily_task
 import japan_cmd
 import geminiapi
+import uwuify
 
 intents = discord.Intents.all()
 intents.message_content = True
@@ -119,6 +120,11 @@ async def yt_trending(ctx):
   res = youtube.get_trending()
   msg = "The #1 trending video on youtube is:\n{0}".format(res)
   await ctx.send(msg)
+
+@bot.hybrid_command(name="uwu", description="uwuify sentence given in user response.")
+async def uwu(ctx, *, args):
+  res = uwuify.uwuify(args)
+  await ctx.send(res)
 
 @bot.event
 async def on_message(message):
