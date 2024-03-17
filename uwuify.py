@@ -22,6 +22,9 @@ def uwuify(sentence):
       "i": "iw",
       "u": "uwu",
       "y": "wy",
+      ".": " nya~",
+      "!": " >w<",
+      "?": " owo?"
   }
 
   # Replace all the letters in the sentence with their uwu-speak equivalents.
@@ -31,11 +34,6 @@ def uwuify(sentence):
       uwu_sentence += replacements[letter]
     else:
       uwu_sentence += letter
-
-  # Add some uwu-speak punctuation.
-  uwu_sentence = uwu_sentence.replace(".", " nya~")
-  uwu_sentence = uwu_sentence.replace("!", " >w<")
-  uwu_sentence = uwu_sentence.replace("?", " owo?")
 
   # Return the uwu-ified sentence.
   return uwu_sentence
