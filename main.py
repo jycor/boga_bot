@@ -12,6 +12,7 @@ import japan_cmd
 import geminiapi
 import uwuify
 import gifgenerate
+import twitch_random
 
 intents = discord.Intents.all()
 intents.message_content = True
@@ -125,6 +126,11 @@ async def yt_trending(ctx):
 @bot.hybrid_command(name="uwu", description="uwuify sentence given in user response.")
 async def uwu(ctx, *, args):
   res = uwuify.uwuify(args)
+  await ctx.send(res)
+
+@bot.hybrid_command(name="twitch-streamer", description="Give you a random streamer currently live on Twitch.")
+async def uwu(ctx):
+  res = twitch_random.generate_channel()
   await ctx.send(res)
 
 @bot.event
