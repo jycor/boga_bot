@@ -156,7 +156,7 @@ async def on_message(message):
       if gif:
         await message.channel.send(gif)
       else:
-        await message.channel.send("Gif failed.")     
+        await message.channel.send("Gif failed.")
 
   # ignore messages that don't mention the bot
   if not bot.user.mentioned_in(message):
