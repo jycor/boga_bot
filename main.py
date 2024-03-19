@@ -12,6 +12,7 @@ import japan_cmd
 import geminiapi
 import uwuify
 import gifgenerate
+import twitch_random
 
 intents = discord.Intents.all()
 intents.message_content = True
@@ -127,6 +128,11 @@ async def uwu(ctx, *, args):
   res = uwuify.uwuify(args)
   await ctx.send(res)
 
+@bot.hybrid_command(name="twitch-streamer", description="Give you a random streamer currently live on Twitch.")
+async def uwu(ctx):
+  res = twitch_random.generate_channel()
+  await ctx.send(res)
+
 @bot.event
 async def on_message(message):
   # ignore messages from the bot
@@ -150,7 +156,7 @@ async def on_message(message):
       if gif:
         await message.channel.send(gif)
       else:
-        await message.channel.send("Gif failed.")
+        await message.channel.send("Gif failed.")     
 
   # ignore messages that don't mention the bot
   if not bot.user.mentioned_in(message):
