@@ -157,6 +157,13 @@ async def on_message(message):
         await message.channel.send(gif)
       else:
         await message.channel.send("Gif failed.")
+      return
+    case "/forget":
+      ctx = await bot.get_context(message)
+      if ctx.author.id == consts.ALEX_ID or ctx.author.id == consts.JAMES_ID:
+        geminiapi.clear_history()
+        await message.channel.send("Cleared chat history.")
+      return
 
   # ignore messages that don't mention the bot
   if not bot.user.mentioned_in(message):
