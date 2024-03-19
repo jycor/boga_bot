@@ -29,6 +29,10 @@ safety_settings = [
 chat = model.start_chat(history=[])
 MAX_HIST_LENGTH = 10
 
+def clear_history():
+    global chat
+    chat.history = []
+
 def generate_gemini_response(user_input: str):
     global chat
     global safety_settings
