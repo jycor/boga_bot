@@ -1,6 +1,8 @@
 from consts import GOOGLE_API_KEY
 import google.generativeai as genai
 
+DISCORD_MSG_LIMIT = 2000
+
 genai.configure(api_key=GOOGLE_API_KEY)
 model = genai.GenerativeModel('gemini-pro')
 safety_settings = [
@@ -43,4 +45,6 @@ def generate_gemini_response(user_input: str):
         return "I'm sorry, I can't do that right now."
     if len(chat.history) > MAX_HIST_LENGTH:
         chat.history = chat.history[-MAX_HIST_LENGTH:]
+    if len(response.text) > DISCORD_MSG_LIMIT:
+        return response.text[:DISCORD_MSG_LIMIT-3] + "..."
     return response.text
