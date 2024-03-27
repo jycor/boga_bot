@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands
+from discord import File
 from datetime import datetime
 
 import consts
@@ -13,6 +14,7 @@ import geminiapi
 import uwuify
 import gifgenerate
 import twitch_random
+import weather
 
 intents = discord.Intents.all()
 intents.message_content = True
@@ -129,9 +131,16 @@ async def uwu(ctx, *, args):
   await ctx.send(res)
 
 @bot.hybrid_command(name="twitch-streamer", description="Give you a random streamer currently live on Twitch.")
-async def uwu(ctx):
+async def twitch_streamer(ctx):
   res = twitch_random.generate_channel()
   await ctx.send(res)
+
+@bot.hybrid_command(name="weather", description="Get the current weather in a specific location.")
+async def current_weather(ctx, *, args):
+  res, condition, icon = weather.get_weather(args)
+  response = "{0}\nThe weather is currently [**{1}**](https:{2})".format(res, condition.upper(), icon)
+  await ctx.send(response)
+  
 
 @bot.event
 async def on_message(message):
@@ -163,7 +172,7 @@ async def on_message(message):
       if ctx.author.id == consts.ALEX_ID or ctx.author.id == consts.JAMES_ID:
         geminiapi.clear_history()
         await message.channel.send("Cleared chat history.")
-      return
+      return 
 
   # ignore messages that don't mention the bot
   if not bot.user.mentioned_in(message):
