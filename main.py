@@ -10,12 +10,11 @@ import youtube
 import boba_math
 import daily_task
 import japan_cmd
-import geminiapi
 import uwuify
 import gifgenerate
 import twitch_random
 import weather
-import find_image
+import chatgpt_api
 
 intents = discord.Intents.all()
 intents.message_content = True
@@ -175,15 +174,22 @@ async def on_message(message):
     case "/forget":
       ctx = await bot.get_context(message)
       if ctx.author.id == consts.ALEX_ID or ctx.author.id == consts.JAMES_ID:
-        geminiapi.clear_history()
+        chatgpt_api.clear_history()
         await message.channel.send("Cleared chat history.")
       return
+    case "/image":
+      if ctx.author.id == consts.ALEX_ID or ctx.author.id == consts.JAMES_ID:
+        if ctx.channel.id == consts.DEBUG_CH_ID:
+          ctx = await bot.get_context(message)
+          response = chatgpt_api.generate_image(message.content[7:])
+          await message.channel.send(response)
+          return
 
   # ignore messages that don't mention the bot
   if not bot.user.mentioned_in(message):
     return
 
-  response = geminiapi.generate_gemini_response(message.content)
+  response = chatgpt_api.generate_chatgpt_response(message.content)
   await message.channel.send(response, reference=message)
 
 bot.run(consts.API_KEY)
