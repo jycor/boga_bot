@@ -20,8 +20,11 @@ intents = discord.Intents.all()
 intents.message_content = True
 bot = commands.Bot(command_prefix='/', intents=intents, help_command=None)
 
+debug_channel = None
+
 @bot.event
 async def on_ready():
+  
   print("I'm in")
   print(bot.user)
 
@@ -30,6 +33,7 @@ async def on_ready():
 
   daily_task.send_daily_msg.start(bot)
 
+  global debug_channel
   debug_channel = bot.get_channel(consts.DEBUG_CH_ID)
   await debug_channel.send("I am alive")
 
@@ -143,8 +147,11 @@ async def current_weather(ctx, *, args):
 
 @bot.hybrid_command(name="image", description="Generate an image based on a prompt. THIS COSTS MONEY.")
 async def image(ctx, *, args):
-  response = chatgpt_api.generate_image(ctx.author.id, args)
+  response, err = chatgpt_api.generate_image(ctx.author.id, args)
   await ctx.send(response)
+  if err:
+    global debug_channel
+    await debug_channel.send("Error: {0}".format(err))
 
 @bot.hybrid_command(name="bill", description="Get the current bill for the user. If no user is specified, it will default to the author.")
 async def bill(ctx, user: discord.Member=None):
@@ -206,7 +213,12 @@ async def on_message(message):
   if not bot.user.mentioned_in(message):
     return
 
-  response = chatgpt_api.generate_chatgpt_response(message.author.id, message.content)
+  response, err = chatgpt_api.generate_chatgpt_response(message.author.id, message.content)
   await message.channel.send(response, reference=message)
+
+  if err:
+    global debug_channel
+    await debug_channel.send("Error: {0}".format(err))
+  
 
 bot.run(consts.API_KEY)

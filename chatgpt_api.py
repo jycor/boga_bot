@@ -39,9 +39,9 @@ def generate_chatgpt_response(user_id: int, query: str):
         if len(chat_history) > MAX_CHAT_LEN:
             chat_history = chat_history[-MAX_CHAT_LEN:]
         
-        return response
+        return response, None
     except Exception as err:
-        return err
+        return "There was an issue with your query, please try again later.", err
 
 def generate_image(user_id: int, query: str):
     global client
@@ -61,9 +61,9 @@ def generate_image(user_id: int, query: str):
         update_img_cost(user_id)
 
         image_url = response.data[0].url
-        return image_url
+        return image_url, None
     except Exception as err:
-        return err
+        return "There was an error generating your image, please try again later.", err
 
 # TODO: consider moving this to a separate file
 # TODO: come up with a way to log database errors?
