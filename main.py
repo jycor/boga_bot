@@ -141,9 +141,14 @@ async def twitch_streamer(ctx):
 
 @bot.hybrid_command(name="weather", description="Get the current weather in a specific location.")
 async def current_weather(ctx, *, args):
-  res, condition, icon = weather.get_weather(args)
-  response = "{0}\nThe weather is currently [**{1}**](https:{2})".format(res, condition.upper(), icon)
-  await ctx.send(response)
+  res, condition, icon, err = weather.get_weather(args)
+  if err:
+    await ctx.send(res)
+    global debug_channel
+    await debug_channel.send("Error: {0}".format(err))
+  else:
+    response = "{0}\nThe weather is currently [**{1}**](https:{2})".format(res, condition.upper(), icon)
+    await ctx.send(response)
 
 @bot.hybrid_command(name="image", description="Generate an image based on a prompt. THIS COSTS MONEY.")
 async def image(ctx, *, args):
