@@ -141,10 +141,21 @@ async def current_weather(ctx, *, args):
   response = "{0}\nThe weather is currently [**{1}**](https:{2})".format(res, condition.upper(), icon)
   await ctx.send(response)
 
-@bot.hybrid_command(name="get-image", description="Get an image based off query.")
-async def generate_image(ctx, *, args):
-  res = find_image.get_photo(args)
-  await ctx.send(res)
+@bot.hybrid_command(name="image", description="Generate an image based on a prompt. THIS COSTS MONEY.")
+async def image(ctx, *, args):
+  response = chatgpt_api.generate_image(ctx.author.id, args)
+  await ctx.send(response)
+
+@bot.hybrid_command(name="bill", description="Get the current bill for the user. If no user is specified, it will default to the author.")
+async def bill(ctx, user: discord.Member=None):
+  response = chatgpt_api.generate_user_bill(ctx.author.id if user is None else user.id)
+  await ctx.send(response)
+
+# TODO: should this command be public?
+# @bot.hybrid_command(name="statement", description="Prints everyone's bill.")
+# async def statement(ctx):
+#   response = chatgpt_api.generate_statement()
+#   await ctx.send(response)
 
 @bot.event
 async def on_message(message):
@@ -178,18 +189,24 @@ async def on_message(message):
         await message.channel.send("Cleared chat history.")
       return
     case "/image":
-      if ctx.author.id == consts.ALEX_ID or ctx.author.id == consts.JAMES_ID:
-        if ctx.channel.id == consts.DEBUG_CH_ID:
-          ctx = await bot.get_context(message)
-          response = chatgpt_api.generate_image(message.content[7:])
-          await message.channel.send(response)
-          return
+      response = chatgpt_api.generate_image(message.author.id, message.content[7:])
+      await message.channel.send(response)
+      return
+    case "/bill":
+      # as a text command, this will always use the author
+      response = chatgpt_api.generate_user_bill(message.author.id)
+      await message.channel.send(response)
+      return
+    case "/statement":
+      response = chatgpt_api.generate_statement()
+      await message.channel.send(response)
+      return
 
   # ignore messages that don't mention the bot
   if not bot.user.mentioned_in(message):
     return
 
-  response = chatgpt_api.generate_chatgpt_response(message.content)
+  response = chatgpt_api.generate_chatgpt_response(message.author.id, message.content)
   await message.channel.send(response, reference=message)
 
 bot.run(consts.API_KEY)
