@@ -29,8 +29,102 @@ cursor.execute((
 ))
 conn.commit()
 
+cursor.execute((
+    "CREATE TABLE IF NOT EXISTS usage("
+    "    command TEXT,"
+    "    count INTEGER"
+    ")"
+))
+conn.commit()
+
 cursor.close()
 conn.close()
+
+def log_command(command: str):
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+
+    cursor.execute((
+        "SELECT command\n"
+        "FROM usage\n"
+        "WHERE command=?"), 
+        (command,)
+    )
+
+    rows = cursor.fetchall()
+    if len(rows) == 0:
+        cursor.execute((
+        "INSERT INTO usage(\n"
+        "   command,\n"
+        "   count\n"
+        ") VALUES(?, 0)"
+        ), (command, )
+        )
+        conn.commit()
+    
+    cursor.execute((
+        "UPDATE usage\n"
+        "SET\n"
+        "    count = count + 1\n"
+        "WHERE command=?"
+        ), (command,)
+    )
+    conn.commit()
+
+    cursor.close()
+    conn.close()
+
+def get_command_usage():
+    try:
+        conn = sqlite3.connect(DB_NAME)
+        cursor = conn.cursor()
+
+        cursor.execute((
+            "SELECT *\n"
+            "FROM usage\n"
+            "ORDER BY\n"
+            "    count DESC,\n"
+            "    command ASC\n"
+            )
+        )
+
+        rows = cursor.fetchall()
+        conn.commit()
+
+        cursor.execute((
+            "SELECT \n"
+            "    SUM(count)\n"
+            "FROM usage"
+            )
+        )
+        
+        total = cursor.fetchall()[0][0]
+        conn.commit()
+        conn.close()
+        
+        res = "```"
+
+        for row in rows:
+            og_percent = round((round(row[1] / total,  2)) * 100)
+            percent = round((round(row[1] / total,  1)) * 10)
+
+            progress = "*"
+            missing = "-"
+
+            total_progress = progress * percent
+            empty = 10 - percent
+
+            total_missing = missing*empty
+
+            res += "/{0:15} [{1}] {2}%\n".format(row[0], total_progress + total_missing, str(og_percent))
+        
+        res += "```"
+
+        
+        
+        return res
+    except:
+        return "There was an issue generating usage, please try again later."
 
 
 def log_cost(user_id: int, type: str, cost: float):

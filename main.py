@@ -71,6 +71,7 @@ async def urban(ctx, term: str = commands.parameter(default="", description="typ
     try:
       result = urban_dict.define(term)
       await ctx.send(result)
+      sql_queries.log_command("urban")
     except:
       await ctx.send("I don't know what {0} is".format(term))
   else:
@@ -81,17 +82,22 @@ async def urban(ctx, term: str = commands.parameter(default="", description="typ
 async def randword(ctx):
   result = urban_dict.random()
   await ctx.send(result)
+  sql_queries.log_command("randword")
 
 
 @bot.hybrid_command(name="wordoftheday", description="daily word")
 async def wordoftheday(ctx):
   result = urban_dict.word_of_the_day()
   await ctx.send(result)
+  sql_queries.log_command("wordoftheday")
+
 
 
 @bot.hybrid_command(name="meme", description="Watch this video.")
 async def meme_video(ctx):
   await ctx.send("https://www.instagram.com/p/Ct_icUhuYn7/")
+  sql_queries.log_command("meme")
+
 
 
 @bot.hybrid_command(name="japan", description="wack wrapper japan countdown")
@@ -99,6 +105,7 @@ async def japan(ctx):
   days, hours, minutes, seconds = japan_cmd.countdown()
   msg = "{0} days, {1} hours, {2} minutes, {3} seconds till Japan :airplane: :flag_jp:".format(days, hours, minutes, seconds)
   await ctx.send(msg)
+  sql_queries.log_command("japan")
 
 
 @bot.hybrid_command(name="uptime", description="time when bot started")
@@ -110,18 +117,21 @@ async def uptime(ctx):
   minutes, seconds = divmod(rem, 60)
   diff_str = "{0} days, {1} hours, {2} minutes, {3} seconds".format(days, hours, minutes, seconds)
   await ctx.send("I was started at `{0}`.\nI've been up for `{1}`.".format(start_time, diff_str))
+  sql_queries.log_command("uptime")
 
 
 @bot.hybrid_command(name="ask", description="truthfully answers a question with yes or no")
 async def ask(ctx, question: str):
   res = ask_cmd.ask(question)
   await ctx.send(res)
+  sql_queries.log_command("ask")
 
 
 @bot.hybrid_command(name="boba", description="Calculate price based off boba")
 async def boba(ctx, value: str):
   res = boba_math.calc(value)
   await ctx.send(res)
+  sql_queries.log_command("boba")
 
 
 @bot.hybrid_command(name="yt-trending", description="#1 trending video on youtube")
@@ -129,16 +139,19 @@ async def yt_trending(ctx):
   res = youtube.get_trending()
   msg = "The #1 trending video on youtube is:\n{0}".format(res)
   await ctx.send(msg)
+  sql_queries.log_command("yt-trending")
 
 @bot.hybrid_command(name="uwu", description="uwuify sentence given in user response.")
 async def uwu(ctx, *, args):
   res = uwuify.uwuify(args)
   await ctx.send(res)
+  sql_queries.log_command("uwu")
 
 @bot.hybrid_command(name="twitch-streamer", description="Give you a random streamer currently live on Twitch.")
 async def twitch_streamer(ctx):
   res = twitch_random.generate_channel()
   await ctx.send(res)
+  sql_queries.log_command("twitch-streamer")
 
 @bot.hybrid_command(name="weather", description="Get the current weather in a specific location.")
 async def current_weather(ctx, *, args):
@@ -150,12 +163,14 @@ async def current_weather(ctx, *, args):
   else:
     response = "{0}\nThe weather is currently [**{1}**](https:{2})".format(res, condition.upper(), icon)
     await ctx.send(response)
+    sql_queries.log_command("weather")
 
 @bot.hybrid_command(name="image", description="Generate an image based on a prompt. THIS COSTS MONEY.")
 async def image(ctx, *, args):
   await ctx.defer()
   response, err = chatgpt_api.generate_image(ctx.author.id, args)
   await ctx.send(response)
+  sql_queries.log_command("image")
   if err:
     global debug_channel
     await debug_channel.send("Error: {0}".format(err))
@@ -181,6 +196,12 @@ async def bill(ctx, user: discord.Member=None, month: int=None, year: int=None):
   response = sql_queries.generate_user_bill(user_id, month, year)
   
   await ctx.send(response)
+  sql_queries.log_command("bill")
+
+@bot.hybrid_command(name="usage", description="Check usage of commands of Boga bot so far.")
+async def usage(ctx):
+  res = sql_queries.get_command_usage()
+  await ctx.send(res)
 
 # TODO: should this command be public?
 # @bot.hybrid_command(name="statement", description="Prints everyone's bill.")
@@ -230,6 +251,7 @@ async def on_message(message):
 
   response, err = chatgpt_api.generate_chatgpt_response(message.author.id, message.content)
   await message.channel.send(response, reference=message)
+  sql_queries.log_command("chatgpt")
 
   if err:
     global debug_channel
