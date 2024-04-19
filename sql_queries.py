@@ -1,8 +1,9 @@
 # TODO: come up with a way to log database errors?
 import sqlite3
 from datetime import datetime
-from collections import defaultdict
 
+PROG_CHR = "*"
+MISS_CHR = "-"
 
 DB_NAME = 'boga.db'
 
@@ -29,9 +30,94 @@ cursor.execute((
 ))
 conn.commit()
 
+cursor.execute((
+    "CREATE TABLE IF NOT EXISTS usage("
+    "    command TEXT,"
+    "    count INTEGER"
+    ")"
+))
+conn.commit()
+
 cursor.close()
 conn.close()
 
+def log_command(command: str):
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+
+    cursor.execute((
+        "SELECT command\n"
+        "FROM usage\n"
+        "WHERE command=?"), 
+        (command,)
+    )
+
+    rows = cursor.fetchall()
+    if len(rows) == 0:
+        cursor.execute((
+        "INSERT INTO usage(\n"
+        "   command,\n"
+        "   count\n"
+        ") VALUES(?, 0)"
+        ), (command, )
+        )
+        conn.commit()
+    
+    cursor.execute((
+        "UPDATE usage\n"
+        "SET\n"
+        "    count = count + 1\n"
+        "WHERE command=?"
+        ), (command,)
+    )
+    conn.commit()
+
+    cursor.close()
+    conn.close()
+
+def get_command_usage():
+    try:
+        conn = sqlite3.connect(DB_NAME)
+        cursor = conn.cursor()
+
+        cursor.execute((
+            "SELECT *\n"
+            "FROM usage\n"
+            "ORDER BY\n"
+            "    count DESC,\n"
+            "    command ASC\n"
+            )
+        )
+
+        rows = cursor.fetchall()
+
+        cursor.execute((
+            "SELECT \n"
+            "    SUM(count)\n"
+            "FROM usage"
+            )
+        )
+        
+        total = cursor.fetchall()[0][0]
+        conn.close()
+        
+        res = "```"
+
+        for row in rows:
+            
+            percent = round((row[1] / total) * 100, 2)
+            progress = round((row[1] / total) * 10)
+            progress_bar = (PROG_CHR * progress) + (MISS_CHR * (10 - progress))
+
+            res += "/{:15} [{}] {}%\n".format(row[0], progress_bar, str(percent))
+        
+        res += "```"
+
+        
+        
+        return res
+    except:
+        return "There was an issue generating usage, please try again later."
 
 def log_cost(user_id: int, type: str, cost: float):
     conn = sqlite3.connect(DB_NAME)
