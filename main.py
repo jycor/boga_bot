@@ -15,6 +15,7 @@ import gifgenerate
 import twitch_random
 import weather
 import chatgpt_api
+import sql_queries
 
 intents = discord.Intents.all()
 intents.message_content = True
@@ -159,8 +160,25 @@ async def image(ctx, *, args):
     await debug_channel.send("Error: {0}".format(err))
 
 @bot.hybrid_command(name="bill", description="Get the current bill for the user. If no user is specified, it will default to the author.")
-async def bill(ctx, user: discord.Member=None):
-  response = chatgpt_api.generate_user_bill(ctx.author.id if user is None else user.id)
+async def bill(ctx, user: discord.Member=None, month: int=None, year: int=None): 
+  # Gets bill of user from specific month/year if passed by user, else get current month/year. 
+
+  today = datetime.now()
+  
+  user_id = ctx.author.id if user is None else user.id
+  month = today.month if month is None else month
+  year = today.year if year is None else year
+
+  if month < 1 or month > 12:
+    await ctx.send("Please send a valid date.")
+    return
+
+  if year < 2024 or year > today.year:
+    await ctx.send("Please send a valid date.")
+    return
+
+  response = sql_queries.generate_user_bill(user_id, month, year)
+  
   await ctx.send(response)
 
 # TODO: should this command be public?
@@ -200,17 +218,8 @@ async def on_message(message):
         chatgpt_api.clear_history()
         await message.channel.send("Cleared chat history.")
       return
-    case "/image":
-      response = chatgpt_api.generate_image(message.author.id, message.content[7:])
-      await message.channel.send(response)
-      return
-    case "/bill":
-      # as a text command, this will always use the author
-      response = chatgpt_api.generate_user_bill(message.author.id)
-      await message.channel.send(response)
-      return
     case "/statement":
-      response = chatgpt_api.generate_statement()
+      response = sql_queries.generate_statement()
       await message.channel.send(response)
       return
 
