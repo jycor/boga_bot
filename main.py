@@ -153,6 +153,7 @@ async def current_weather(ctx, *, args):
 
 @bot.hybrid_command(name="image", description="Generate an image based on a prompt. THIS COSTS MONEY.")
 async def image(ctx, *, args):
+  await ctx.defer()
   response, err = chatgpt_api.generate_image(ctx.author.id, args)
   await ctx.send(response)
   if err:
