@@ -1,8 +1,9 @@
 # TODO: come up with a way to log database errors?
 import sqlite3
 from datetime import datetime
-from collections import defaultdict
 
+PROG_CHR = "*"
+MISS_CHR = "-"
 
 DB_NAME = 'boga.db'
 
@@ -89,7 +90,6 @@ def get_command_usage():
         )
 
         rows = cursor.fetchall()
-        conn.commit()
 
         cursor.execute((
             "SELECT \n"
@@ -99,24 +99,17 @@ def get_command_usage():
         )
         
         total = cursor.fetchall()[0][0]
-        conn.commit()
         conn.close()
         
         res = "```"
 
         for row in rows:
-            og_percent = round((round(row[1] / total,  2)) * 100)
-            percent = round((round(row[1] / total,  1)) * 10)
+            
+            percent = round((row[1] / total) * 100, 2)
+            progress = round((row[1] / total) * 10)
+            progress_bar = (PROG_CHR * progress) + (MISS_CHR * (10 - progress))
 
-            progress = "*"
-            missing = "-"
-
-            total_progress = progress * percent
-            empty = 10 - percent
-
-            total_missing = missing*empty
-
-            res += "/{0:15} [{1}] {2}%\n".format(row[0], total_progress + total_missing, str(og_percent))
+            res += "/{:15} [{}] {}%\n".format(row[0], progress_bar, str(percent))
         
         res += "```"
 
@@ -125,7 +118,6 @@ def get_command_usage():
         return res
     except:
         return "There was an issue generating usage, please try again later."
-
 
 def log_cost(user_id: int, type: str, cost: float):
     conn = sqlite3.connect(DB_NAME)

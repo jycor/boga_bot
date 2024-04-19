@@ -200,6 +200,7 @@ async def bill(ctx, user: discord.Member=None, month: int=None, year: int=None):
 
 @bot.hybrid_command(name="usage", description="Check usage of commands of Boga bot so far.")
 async def usage(ctx):
+  await ctx.defer()
   res = sql_queries.get_command_usage()
   await ctx.send(res)
 
