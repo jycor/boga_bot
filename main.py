@@ -15,13 +15,17 @@ import gifgenerate
 import twitch_random
 import weather
 import chatgpt_api
+import sql_queries
 
 intents = discord.Intents.all()
 intents.message_content = True
 bot = commands.Bot(command_prefix='/', intents=intents, help_command=None)
 
+debug_channel = None
+
 @bot.event
 async def on_ready():
+  
   print("I'm in")
   print(bot.user)
 
@@ -30,6 +34,7 @@ async def on_ready():
 
   daily_task.send_daily_msg.start(bot)
 
+  global debug_channel
   debug_channel = bot.get_channel(consts.DEBUG_CH_ID)
   await debug_channel.send("I am alive")
 
@@ -137,14 +142,51 @@ async def twitch_streamer(ctx):
 
 @bot.hybrid_command(name="weather", description="Get the current weather in a specific location.")
 async def current_weather(ctx, *, args):
-  res, condition, icon = weather.get_weather(args)
-  response = "{0}\nThe weather is currently [**{1}**](https:{2})".format(res, condition.upper(), icon)
+  res, condition, icon, err = weather.get_weather(args)
+  if err:
+    await ctx.send(res)
+    global debug_channel
+    await debug_channel.send("Error: {0}".format(err))
+  else:
+    response = "{0}\nThe weather is currently [**{1}**](https:{2})".format(res, condition.upper(), icon)
+    await ctx.send(response)
+
+@bot.hybrid_command(name="image", description="Generate an image based on a prompt. THIS COSTS MONEY.")
+async def image(ctx, *, args):
+  await ctx.defer()
+  response, err = chatgpt_api.generate_image(ctx.author.id, args)
+  await ctx.send(response)
+  if err:
+    global debug_channel
+    await debug_channel.send("Error: {0}".format(err))
+
+@bot.hybrid_command(name="bill", description="Get the current bill for the user. If no user is specified, it will default to the author.")
+async def bill(ctx, user: discord.Member=None, month: int=None, year: int=None): 
+  # Gets bill of user from specific month/year if passed by user, else get current month/year. 
+
+  today = datetime.now()
+  
+  user_id = ctx.author.id if user is None else user.id
+  month = today.month if month is None else month
+  year = today.year if year is None else year
+
+  if month < 1 or month > 12:
+    await ctx.send("Please send a valid date.")
+    return
+
+  if year < 2024 or year > today.year:
+    await ctx.send("Please send a valid date.")
+    return
+
+  response = sql_queries.generate_user_bill(user_id, month, year)
+  
   await ctx.send(response)
 
-@bot.hybrid_command(name="get-image", description="Get an image based off query.")
-async def generate_image(ctx, *, args):
-  res = find_image.get_photo(args)
-  await ctx.send(res)
+# TODO: should this command be public?
+# @bot.hybrid_command(name="statement", description="Prints everyone's bill.")
+# async def statement(ctx):
+#   response = chatgpt_api.generate_statement()
+#   await ctx.send(response)
 
 @bot.event
 async def on_message(message):
@@ -177,19 +219,21 @@ async def on_message(message):
         chatgpt_api.clear_history()
         await message.channel.send("Cleared chat history.")
       return
-    case "/image":
-      if ctx.author.id == consts.ALEX_ID or ctx.author.id == consts.JAMES_ID:
-        if ctx.channel.id == consts.DEBUG_CH_ID:
-          ctx = await bot.get_context(message)
-          response = chatgpt_api.generate_image(message.content[7:])
-          await message.channel.send(response)
-          return
+    case "/statement":
+      response = sql_queries.generate_statement()
+      await message.channel.send(response)
+      return
 
   # ignore messages that don't mention the bot
   if not bot.user.mentioned_in(message):
     return
 
-  response = chatgpt_api.generate_chatgpt_response(message.content)
+  response, err = chatgpt_api.generate_chatgpt_response(message.author.id, message.content)
   await message.channel.send(response, reference=message)
+
+  if err:
+    global debug_channel
+    await debug_channel.send("Error: {0}".format(err))
+  
 
 bot.run(consts.API_KEY)

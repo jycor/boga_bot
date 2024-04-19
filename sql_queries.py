@@ -1,0 +1,119 @@
+# TODO: come up with a way to log database errors?
+import sqlite3
+from datetime import datetime
+from collections import defaultdict
+
+
+DB_NAME = 'boga.db'
+
+# Create database on startup
+conn = sqlite3.connect(DB_NAME)
+cursor = conn.cursor()
+cursor.execute((
+    "CREATE TABLE IF NOT EXISTS costs("
+    "    user_id INTEGER,"
+    "    date TEXT,"
+    "    type TEXT,"
+    "    cost REAL"
+    ")"
+))
+conn.commit()
+
+cursor.execute((
+    "CREATE INDEX IF NOT EXISTS date_index ON costs (date)"
+))
+conn.commit()
+
+cursor.execute((
+    "CREATE INDEX IF NOT EXISTS user_id_index ON costs (user_id)"
+))
+conn.commit()
+
+cursor.close()
+conn.close()
+
+
+def log_cost(user_id: int, type: str, cost: float):
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    
+    cursor.execute((
+        "INSERT INTO costs(\n"
+        "   user_id,\n"
+        "   date,\n"
+        "   type,\n"
+        "   cost\n"
+        ") VALUES(?, ?, ?, ?)"
+        ), (user_id, str(datetime.now()), type, cost)
+    )
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+def generate_user_bill(user_id: int, month=None, year=None): 
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+
+    start_date = datetime(year=year, month=month, day=1)
+    end_month = month + 1 if month != 12 else 1
+    end_year = year + 1 if end_month == 1 else year
+    end_date = datetime(year=end_year, month=end_month, day=1)
+
+    cursor.execute((
+        "SELECT\n"
+        "    sum(cost)\n"
+        "FROM costs\n"
+        "WHERE user_id=?\n"
+        "AND date >=?\n"
+        "AND date <=?\n"
+        ), (user_id, start_date, end_date)
+    )
+    rows = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    
+    total_cost = rows[0][0] if rows[0][0] is not None else 0
+
+    return "<@!{}> owes `${}` for `{}/{}`".format(user_id, total_cost, month, year)
+
+def generate_statement():
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+
+    cursor.execute((
+        "SELECT\n"
+        "    strftime('%m/%Y', date),\n"
+        "    user_id,\n"
+        "    sum(cost)\n"
+        "FROM costs\n"
+        "GROUP BY \n"
+        "    strftime('%m-%Y', date),\n"
+        "    user_id\n"
+        "ORDER BY\n"
+        "    date,\n"
+        "    user_id"
+        )
+    )
+    rows = cursor.fetchall()
+    cursor.close()
+    conn.close()
+
+    if len(rows) == 0:
+        return "Nobody has used the bot yet"
+        
+    curr = rows[0][0]
+
+    res = "# Statement Summary\n\n"
+    res += "## {}\n\n".format(curr)
+
+    total = 0
+    for row in rows:
+        if row[0] != curr:
+            curr = row[0]
+            res += "## {}\n\n".format(curr)
+        tmp = "<@!{}> owes `${}`\n".format(row[1], row[2])
+        res += tmp
+        total += row[2]
+    
+    res += "\nTotal: `${}`".format(total)
+    return res

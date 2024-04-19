@@ -1,5 +1,6 @@
 from openai import OpenAI
 from consts import OPENAI_API_KEY
+import sql_queries
 
 client = OpenAI(
     api_key=OPENAI_API_KEY
@@ -8,13 +9,15 @@ client = OpenAI(
 chat_history = [] 
 MAX_CHAT_LEN = 20
 DISCORD_MSG_LIMIT = 2000
+IMG_COST = 0.04
+INPUT_TOKEN_COST = 0.50 / 1_000_000
+OUTPUT_TOKEN_COST = 1.50 / 1_000_000
 
 def clear_history():
     global chat_history
     chat_history = []
 
-def generate_chatgpt_response(query: str):
-    global client
+def generate_chatgpt_response(user_id: int, query: str):
     global chat_history
     
     try:
@@ -26,8 +29,13 @@ def generate_chatgpt_response(query: str):
             messages=chat_history,
         )
 
+        completion_cost =  INPUT_TOKEN_COST * gpt_response.usage.completion_tokens
+        prompt_cost = OUTPUT_TOKEN_COST * gpt_response.usage.prompt_tokens
+
+        sql_queries.log_cost(user_id, "text", completion_cost + prompt_cost)
+
         response = gpt_response.choices[0].message.content
-        
+
         if len(response) > DISCORD_MSG_LIMIT:
             response = response[:DISCORD_MSG_LIMIT-3] + "..."
 
@@ -37,12 +45,11 @@ def generate_chatgpt_response(query: str):
         if len(chat_history) > MAX_CHAT_LEN:
             chat_history = chat_history[-MAX_CHAT_LEN:]
         
-        return response
-    except:
-        return "There was an issue with your query, please try again later."
+        return response, None
+    except Exception as err:
+        return "There was an issue with your query, please try again later.", err
 
-def generate_image(query: str):
-    global client
+def generate_image(user_id: int, query: str):
 
     try:
         response = client.images.generate(
@@ -52,8 +59,9 @@ def generate_image(query: str):
             quality="standard",
             n=1,
         )
+        sql_queries.log_cost(user_id, "image", IMG_COST)
 
         image_url = response.data[0].url
-        return image_url
-    except:
-        return "There was an error generating your image, please try again later."
+        return image_url, None
+    except Exception as err:
+        return "There was an error generating your image, please try again later.", err
