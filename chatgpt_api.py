@@ -25,7 +25,7 @@ def generate_chatgpt_response(user_id: int, query: str):
         chat_history.append(user_query)
 
         gpt_response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="gpt-4o-mini",
             messages=chat_history,
         )
 
