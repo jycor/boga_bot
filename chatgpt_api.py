@@ -10,8 +10,8 @@ chat_history = []
 MAX_CHAT_LEN = 20
 DISCORD_MSG_LIMIT = 2000
 IMG_COST = 0.04
-INPUT_TOKEN_COST = 0.50 / 1_000_000
-OUTPUT_TOKEN_COST = 1.50 / 1_000_000
+INPUT_TOKEN_COST = 0.15 / 1_000_000
+OUTPUT_TOKEN_COST = 0.60 / 1_000_000
 
 def clear_history():
     global chat_history
