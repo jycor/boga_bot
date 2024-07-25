@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 from discord import File
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 
 import consts
 import ask_cmd
@@ -17,6 +17,7 @@ import weather
 import chatgpt_api
 import sql_queries
 
+pst = timezone(timedelta(hours=-8))
 intents = discord.Intents.all()
 intents.message_content = True
 bot = commands.Bot(command_prefix='/', intents=intents, help_command=None)
@@ -102,10 +103,17 @@ async def meme_video(ctx):
 
 @bot.hybrid_command(name="japan", description="wack wrapper japan countdown")
 async def japan(ctx):
-  days, hours, minutes, seconds = japan_cmd.countdown()
+  days, hours, minutes, seconds = japan_cmd.countdown(datetime(2025, 1, 1, tzinfo=pst))
   msg = "{0} days, {1} hours, {2} minutes, {3} seconds till Japan :airplane: :flag_jp:".format(days, hours, minutes, seconds)
   await ctx.send(msg)
   sql_queries.log_command("japan")
+
+@bot.hybrid_command(name="bye-wayne", description="wack wrapper wayne exit countdown")
+async def wayne(ctx):
+  days, hours, minutes, seconds = japan_cmd.countdown(datetime(2024, 8, 11, tzinfo=pst))
+  msg = "{0} days, {1} hours, {2} minutes, {3} seconds till Wayne fricks himself in Misery :student: :pill: ".format(days, hours, minutes, seconds)
+  await ctx.send(msg)
+  sql_queries.log_command("bye-wayne")
 
 
 @bot.hybrid_command(name="uptime", description="time when bot started")
