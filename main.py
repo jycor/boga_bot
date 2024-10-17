@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 from discord import File
 from datetime import datetime, timezone, timedelta
+import asyncio
 
 import consts
 import ask_cmd
@@ -265,12 +266,10 @@ async def on_message(message):
   ctx = await bot.get_context(message)  
   
   async with ctx.typing():
-
     response, err = await chatgpt_api.generate_chatgpt_response(message.author.id, message.content)
-
-  await ctx.typing()
-  for line in response:
-    await message.channel.send(line, reference=message)
+  
+    for line in response:
+      await message.channel.send(line, reference=message)
   sql_queries.log_command("chatgpt")
 
   if err:
