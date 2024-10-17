@@ -212,6 +212,10 @@ async def usage(ctx):
   res = sql_queries.get_command_usage()
   await ctx.send(res)
 
+@bot.hybrid_command(name="goon", description="Enter the gooniverse")
+async def goon(ctx):
+  await ctx.send("https://tenor.com/view/jarvis-iron-man-goon-gif-5902471035652079804")
+
 # TODO: should this command be public?
 # @bot.hybrid_command(name="statement", description="Prints everyone's bill.")
 # async def statement(ctx):
@@ -258,8 +262,15 @@ async def on_message(message):
   if not bot.user.mentioned_in(message):
     return
 
-  response, err = chatgpt_api.generate_chatgpt_response(message.author.id, message.content)
-  await message.channel.send(response, reference=message)
+  ctx = await bot.get_context(message)  
+  
+  async with ctx.typing():
+
+    response, err = await chatgpt_api.generate_chatgpt_response(message.author.id, message.content)
+
+  await ctx.typing()
+  for line in response:
+    await message.channel.send(line, reference=message)
   sql_queries.log_command("chatgpt")
 
   if err:

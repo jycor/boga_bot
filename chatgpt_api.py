@@ -17,7 +17,7 @@ def clear_history():
     global chat_history
     chat_history = []
 
-def generate_chatgpt_response(user_id: int, query: str):
+async def generate_chatgpt_response(user_id: int, query: str):
     global chat_history
     
     try:
@@ -36,16 +36,15 @@ def generate_chatgpt_response(user_id: int, query: str):
 
         response = gpt_response.choices[0].message.content
 
-        if len(response) > DISCORD_MSG_LIMIT:
-            response = response[:DISCORD_MSG_LIMIT-3] + "..."
-
         gpt_response = {"role": "assistant", "content": response}
         chat_history.append(gpt_response)
+
+        splitted_response = [response[i:i + DISCORD_MSG_LIMIT] for i in range(0, len(response), DISCORD_MSG_LIMIT)]
 
         if len(chat_history) > MAX_CHAT_LEN:
             chat_history = chat_history[-MAX_CHAT_LEN:]
         
-        return response, None
+        return splitted_response, None
     except Exception as err:
         return "There was an issue with your query, please try again later.", err
 
