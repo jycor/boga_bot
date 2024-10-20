@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 from discord import File
 from datetime import datetime, timezone, timedelta
+import asyncio
 
 import consts
 import ask_cmd
@@ -93,12 +94,10 @@ async def wordoftheday(ctx):
   sql_queries.log_command("wordoftheday")
 
 
-
 @bot.hybrid_command(name="meme", description="Watch this video.")
 async def meme_video(ctx):
   await ctx.send("https://www.instagram.com/p/Ct_icUhuYn7/")
   sql_queries.log_command("meme")
-
 
 
 @bot.hybrid_command(name="japan", description="wack wrapper japan countdown")
@@ -107,6 +106,7 @@ async def japan(ctx):
   msg = "{0} days, {1} hours, {2} minutes, {3} seconds till Japan :airplane: :flag_jp:".format(days, hours, minutes, seconds)
   await ctx.send(msg)
   sql_queries.log_command("japan")
+
 
 @bot.hybrid_command(name="bye-wayne", description="wack wrapper wayne exit countdown")
 async def wayne(ctx):
@@ -149,17 +149,20 @@ async def yt_trending(ctx):
   await ctx.send(msg)
   sql_queries.log_command("yt-trending")
 
+
 @bot.hybrid_command(name="uwu", description="uwuify sentence given in user response.")
 async def uwu(ctx, *, args):
   res = uwuify.uwuify(args)
   await ctx.send(res)
   sql_queries.log_command("uwu")
 
+
 @bot.hybrid_command(name="twitch-streamer", description="Give you a random streamer currently live on Twitch.")
 async def twitch_streamer(ctx):
   res = twitch_random.generate_channel()
   await ctx.send(res)
   sql_queries.log_command("twitch-streamer")
+
 
 @bot.hybrid_command(name="weather", description="Get the current weather in a specific location.")
 async def current_weather(ctx, *, args):
@@ -173,6 +176,7 @@ async def current_weather(ctx, *, args):
     await ctx.send(response)
     sql_queries.log_command("weather")
 
+
 @bot.hybrid_command(name="image", description="Generate an image based on a prompt. THIS COSTS MONEY.")
 async def image(ctx, *, args):
   await ctx.defer()
@@ -182,6 +186,7 @@ async def image(ctx, *, args):
   if err:
     global debug_channel
     await debug_channel.send("Error: {0}".format(err))
+
 
 @bot.hybrid_command(name="bill", description="Get the current bill for the user. If no user is specified, it will default to the author.")
 async def bill(ctx, user: discord.Member=None, month: int=None, year: int=None): 
@@ -206,17 +211,18 @@ async def bill(ctx, user: discord.Member=None, month: int=None, year: int=None):
   await ctx.send(response)
   sql_queries.log_command("bill")
 
+
 @bot.hybrid_command(name="usage", description="Check usage of commands of Boga bot so far.")
 async def usage(ctx):
   await ctx.defer()
   res = sql_queries.get_command_usage()
   await ctx.send(res)
 
-# TODO: should this command be public?
-# @bot.hybrid_command(name="statement", description="Prints everyone's bill.")
-# async def statement(ctx):
-#   response = chatgpt_api.generate_statement()
-#   await ctx.send(response)
+
+@bot.hybrid_command(name="goon", description="Enter the gooniverse")
+async def goon(ctx):
+  await ctx.send("https://tenor.com/view/jarvis-iron-man-goon-gif-5902471035652079804")
+
 
 @bot.event
 async def on_message(message):
@@ -258,13 +264,19 @@ async def on_message(message):
   if not bot.user.mentioned_in(message):
     return
 
-  response, err = chatgpt_api.generate_chatgpt_response(message.author.id, message.content)
-  await message.channel.send(response, reference=message)
+  ctx = await bot.get_context(message)  
+  async with ctx.typing():
+    response, err = await chatgpt_api.generate_chatgpt_response(message.author.id, message.content)
+    if err:
+      global debug_channel
+      await debug_channel.send("Error: {0}".format(err))
+    
+  for i in range(0, len(response), chatgpt_api.DISCORD_MSG_LIMIT):
+    async with ctx.typing():
+      await message.channel.send(response[i:i+chatgpt_api.DISCORD_MSG_LIMIT], reference=message)
+      await asyncio.sleep(0.5) # delay to make it feel more natural; can remove
+  
   sql_queries.log_command("chatgpt")
-
-  if err:
-    global debug_channel
-    await debug_channel.send("Error: {0}".format(err))
   
 
 bot.run(consts.API_KEY)

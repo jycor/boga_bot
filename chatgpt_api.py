@@ -17,7 +17,7 @@ def clear_history():
     global chat_history
     chat_history = []
 
-def generate_chatgpt_response(user_id: int, query: str):
+async def generate_chatgpt_response(user_id: int, query: str):
     global chat_history
     
     try:
@@ -35,9 +35,6 @@ def generate_chatgpt_response(user_id: int, query: str):
         sql_queries.log_cost(user_id, "text", completion_cost + prompt_cost)
 
         response = gpt_response.choices[0].message.content
-
-        if len(response) > DISCORD_MSG_LIMIT:
-            response = response[:DISCORD_MSG_LIMIT-3] + "..."
 
         gpt_response = {"role": "assistant", "content": response}
         chat_history.append(gpt_response)
