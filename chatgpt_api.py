@@ -39,12 +39,10 @@ async def generate_chatgpt_response(user_id: int, query: str):
         gpt_response = {"role": "assistant", "content": response}
         chat_history.append(gpt_response)
 
-        splitted_response = [response[i:i + DISCORD_MSG_LIMIT] for i in range(0, len(response), DISCORD_MSG_LIMIT)]
-
         if len(chat_history) > MAX_CHAT_LEN:
             chat_history = chat_history[-MAX_CHAT_LEN:]
         
-        return splitted_response, None
+        return response, None
     except Exception as err:
         return "There was an issue with your query, please try again later.", err
 
