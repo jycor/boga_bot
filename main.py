@@ -17,6 +17,7 @@ import twitch_random
 import weather
 import chatgpt_api
 import sql_queries
+import mc_server
 
 pst = timezone(timedelta(hours=-8))
 intents = discord.Intents.all()
@@ -60,6 +61,10 @@ async def echo(ctx, *, args):
     else:
       await ctx.send('it broke')
 
+@bot.hybrid_command(name="minecraft", description="Check the status of the Wack Wrappers minecraft server.")
+async def minecraft(ctx):
+  response = mc_server.get_details()
+  await ctx.send(response)
 
 @bot.hybrid_command(name="help", description="a helpful command")
 async def help(ctx):
