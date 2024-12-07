@@ -13,11 +13,10 @@ def get_details():
             message += "\n"
             message += f"The server has the following players online: {', '.join(query.players.names)}."
         
-            return message
+        return message
     
     except (ConnectionRefusedError):
         return "The Minecraft server may be down right now."
 
     except: 
          return "There was an error getting Minecraft server details, please try again later."
-    
