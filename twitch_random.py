@@ -29,8 +29,7 @@ def generate_channel():
     global expiry_time
     global access_token
     if not expiry_time or expiry_time < datetime.now():
-        refresh_token()
-        print("Refreshed token!")   
+        refresh_token() 
     
     header = {
         'Client-ID' : TWITCH_API_KEY,
