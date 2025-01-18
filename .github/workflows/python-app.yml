@@ -6,11 +6,27 @@ name: Python application
 on:
   push:
     branches: [ "main" ]
-  pull_request_target:
+  pull_request:
     branches: [ "main" ]
 
 permissions:
   contents: read
+
+env: 
+      DISCORD_BOT_API_KEY: ${{ secrets.DISCORD_BOT_API_KEY }}
+      URBAN_DICT_API_KEY: ${{ secrets.URBAN_DICT_API_KEY }}
+      YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+      GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+      GIF_API_KEY: ${{ secrets.GIF_API_KEY }}
+      TWITCH_API_KEY: ${{ secrets.TWITCH_API_KEY }}
+      TWITCH_SECRET: ${{ secrets.TWITCH_SECRET }}
+      WEATHER_API_KEY: ${{ secrets.WEATHER_API_KEY }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      MC_SERVER_ADDR: ${{ secrets.MC_SERVER_ADDR }}
+      WACK_WRAPPERS_CHANNEL_ID: ${{ secrets.WACK_WRAPPERS_CHANNEL_ID }}
+      DEBUG_CHANNEL_ID: ${{ secrets.DEBUG_CHANNEL_ID }}
+      ALEX_USER_ID: ${{ secrets.ALEX_USER_ID }}
+      JAMES_USER_ID: ${{ secrets.JAMES_USER_ID }} 
 
 jobs:
   build:
@@ -35,22 +51,6 @@ jobs:
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with pytest
-      
-      env: 
-        DISCORD_BOT_API_KEY: ${{ secrets.DISCORD_BOT_API_KEY }}
-        URBAN_DICT_API_KEY: ${{ secrets.URBAN_DICT_API_KEY }}
-        YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
-        GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
-        GIF_API_KEY: ${{ secrets.GIF_API_KEY }}
-        TWITCH_API_KEY: ${{ secrets.TWITCH_API_KEY }}
-        TWITCH_SECRET: ${{ secrets.TWITCH_SECRET }}
-        WEATHER_API_KEY: ${{ secrets.WEATHER_API_KEY }}
-        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        MC_SERVER_ADDR: ${{ secrets.MC_SERVER_ADDR }}
-        WACK_WRAPPERS_CHANNEL_ID: ${{ secrets.WACK_WRAPPERS_CHANNEL_ID }}
-        DEBUG_CHANNEL_ID: ${{ secrets.DEBUG_CHANNEL_ID }}
-        ALEX_USER_ID: ${{ secrets.ALEX_USER_ID }}
-        JAMES_USER_ID: ${{ secrets.JAMES_USER_ID }}
       run: |
         echo "Test env var: ${{ secrets.MC_SERVER_ADDR }}""
         pytest ${{ github.workspace }}/.github/workflows/tests.py --doctest-modules --junitxml=junit/test-results.xml 
