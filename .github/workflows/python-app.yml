@@ -37,20 +37,20 @@ jobs:
     - name: Test with pytest
       
       env: 
-        DISCORD_BOT_API_KEY: ${{ vars.DISCORD_BOT_API_KEY }}
-        URBAN_DICT_API_KEY: ${{ vars.URBAN_DICT_API_KEY }}
-        YOUTUBE_API_KEY: ${{ vars.YOUTUBE_API_KEY }}
-        GOOGLE_API_KEY: ${{ vars.GOOGLE_API_KEY }}
-        GIF_API_KEY: ${{ vars.GIF_API_KEY }}
-        TWITCH_API_KEY: ${{ vars.TWITCH_API_KEY }}
-        TWITCH_SECRET: ${{ vars.TWITCH_SECRET }}
-        WEATHER_API_KEY: ${{ vars.WEATHER_API_KEY }}
-        OPENAI_API_KEY: ${{ vars.OPENAI_API_KEY }}
-        MC_SERVER_ADDR: ${{ vars.MC_SERVER_ADDR }}
-        WACK_WRAPPERS_CHANNEL_ID: ${{ vars.WACK_WRAPPERS_CHANNEL_ID }}
-        DEBUG_CHANNEL_ID: ${{ vars.DEBUG_CHANNEL_ID }}
-        ALEX_USER_ID: ${{ vars.ALEX_USER_ID }}
-        JAMES_USER_ID: ${{ vars.JAMES_USER_ID }}
+        DISCORD_BOT_API_KEY: ${{ env.DISCORD_BOT_API_KEY }}
+        URBAN_DICT_API_KEY: ${{ env.URBAN_DICT_API_KEY }}
+        YOUTUBE_API_KEY: ${{ env.YOUTUBE_API_KEY }}
+        GOOGLE_API_KEY: ${{ env.GOOGLE_API_KEY }}
+        GIF_API_KEY: ${{ env.GIF_API_KEY }}
+        TWITCH_API_KEY: ${{ env.TWITCH_API_KEY }}
+        TWITCH_SECRET: ${{ env.TWITCH_SECRET }}
+        WEATHER_API_KEY: ${{ env.WEATHER_API_KEY }}
+        OPENAI_API_KEY: ${{ env.OPENAI_API_KEY }}
+        MC_SERVER_ADDR: ${{ env.MC_SERVER_ADDR }}
+        WACK_WRAPPERS_CHANNEL_ID: ${{ env.WACK_WRAPPERS_CHANNEL_ID }}
+        DEBUG_CHANNEL_ID: ${{ env.DEBUG_CHANNEL_ID }}
+        ALEX_USER_ID: ${{ env.ALEX_USER_ID }}
+        JAMES_USER_ID: ${{ env.JAMES_USER_ID }}
       run: |
-        echo "Test env var: ${{ vars.MC_SERVER_ADDR }}""
+        echo "Test env var: ${{ env.MC_SERVER_ADDR }}""
         pytest ${{ github.workspace }}/.github/workflows/tests.py --doctest-modules --junitxml=junit/test-results.xml 
