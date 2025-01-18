@@ -3,3 +3,5 @@ main.sh
 start.sh
 boga.db
 .venv
+.pytest_cache
+.env

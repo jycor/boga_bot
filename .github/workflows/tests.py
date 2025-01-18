@@ -1,3 +1,6 @@
+import sys
+sys.path.append('../../')
+
 import boba_math
 import gifgenerate
 import pytest
