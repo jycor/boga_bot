@@ -1,6 +1,10 @@
 import sys
-sys.path.append('../../')
+import os
 
+main_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+
+# Add the main directory to the system path
+sys.path.append(main_dir)
 import boba_math
 import gifgenerate
 import pytest
