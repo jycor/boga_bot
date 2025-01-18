@@ -1,0 +1,56 @@
+# This workflow will install Python dependencies, run tests and lint with a single version of Python
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
+
+name: Python application
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    environment: boga_bot
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.12
+      uses: actions/setup-python@v3
+      with:
+        python-version: "3.12"
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8 pytest
+        if [ -f ${{ github.workspace }}/.github/workflows/requirements.txt ]; then pip install -r ${{ github.workspace }}/.github/workflows/requirements.txt; fi
+    - name: Lint with flake8
+      run: |
+        # stop the build if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    - name: Test with pytest
+      
+      env: 
+        DISCORD_BOT_API_KEY: ${{ secrets.DISCORD_BOT_API_KEY }}
+        URBAN_DICT_API_KEY: ${{ secrets.URBAN_DICT_API_KEY }}
+        YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+        GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+        GIF_API_KEY: ${{ secrets.GIF_API_KEY }}
+        TWITCH_API_KEY: ${{ secrets.TWITCH_API_KEY }}
+        TWITCH_SECRET: ${{ secrets.TWITCH_SECRET }}
+        WEATHER_API_KEY: ${{ secrets.WEATHER_API_KEY }}
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        MC_SERVER_ADDR: ${{ secrets.MC_SERVER_ADDR }}
+        WACK_WRAPPERS_CHANNEL_ID: ${{ secrets.WACK_WRAPPERS_CHANNEL_ID }}
+        DEBUG_CHANNEL_ID: ${{ secrets.DEBUG_CHANNEL_ID }}
+        ALEX_USER_ID: ${{ secrets.ALEX_USER_ID }}
+        JAMES_USER_ID: ${{ secrets.JAMES_USER_ID }}
+      run: |
+        pytest ${{ github.workspace }}/.github/workflows/tests.py --doctest-modules 
