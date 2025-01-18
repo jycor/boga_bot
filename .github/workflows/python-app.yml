@@ -17,6 +17,22 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    env: 
+      DISCORD_BOT_API_KEY: ${{ secrets.DISCORD_BOT_API_KEY }}
+      URBAN_DICT_API_KEY: ${{ secrets.URBAN_DICT_API_KEY }}
+      YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+      GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+      GIF_API_KEY: ${{ secrets.GIF_API_KEY }}
+      TWITCH_API_KEY: ${{ secrets.TWITCH_API_KEY }}
+      TWITCH_SECRET: ${{ secrets.TWITCH_SECRET }}
+      WEATHER_API_KEY: ${{ secrets.WEATHER_API_KEY }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      MC_SERVER_ADDR: ${{ secrets.MC_SERVER_ADDR }}
+      WACK_WRAPPERS_CHANNEL_ID: ${{ secrets.WACK_WRAPPERS_CHANNEL_ID }}
+      DEBUG_CHANNEL_ID: ${{ secrets.DEBUG_CHANNEL_ID }}
+      ALEX_USER_ID: ${{ secrets.ALEX_USER_ID }}
+      JAMES_USER_ID: ${{ secrets.JAMES_USER_ID }}
+
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.12
