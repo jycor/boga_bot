@@ -53,5 +53,4 @@ jobs:
         ALEX_USER_ID: ${{ secrets.ALEX_USER_ID }}
         JAMES_USER_ID: ${{ secrets.JAMES_USER_ID }}
       run: |
-        echo "Test env var: ${{ secrets.MC_SERVER_ADDR }}""
         pytest ${{ github.workspace }}/.github/workflows/tests.py --doctest-modules --junitxml=junit/test-results.xml 
