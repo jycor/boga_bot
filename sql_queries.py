@@ -168,15 +168,13 @@ def generate_statement():
 
     cursor.execute((
         "SELECT\n"
-        "    strftime('%m/%Y', date),\n"
         "    user_id,\n"
         "    sum(cost)\n"
         "FROM costs\n"
         "GROUP BY \n"
-        "    strftime('%m-%Y', date),\n"
         "    user_id\n"
         "ORDER BY\n"
-        "    date,\n"
+        "    sum(cost) DESC,\n"
         "    user_id"
         )
     )
@@ -186,20 +184,11 @@ def generate_statement():
 
     if len(rows) == 0:
         return "Nobody has used the bot yet"
-        
-    curr = rows[0][0]
 
-    res = "# Statement Summary\n\n"
-    res += "## {}\n\n".format(curr)
+    res = "# Statement Summary starting from 04/2024\n\n"
 
-    total = 0
     for row in rows:
-        if row[0] != curr:
-            curr = row[0]
-            res += "## {}\n\n".format(curr)
-        tmp = "<@!{}> owes `${}`\n".format(row[1], row[2])
+        tmp = "<@!{}> owes `${}`\n".format(row[0], row[1])
         res += tmp
-        total += row[2]
     
-    res += "\nTotal: `${}`".format(total)
     return res
