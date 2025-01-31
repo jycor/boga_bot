@@ -187,8 +187,11 @@ def generate_statement():
 
     res = "# Statement Summary starting from 04/2024\n\n"
 
+    total = 0
     for row in rows:
         tmp = "<@!{}> owes `${}`\n".format(row[0], row[1])
         res += tmp
+        total += row[1]
     
+    res += "\nTotal: `${}`".format(total)
     return res
