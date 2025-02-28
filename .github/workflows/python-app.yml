@@ -52,6 +52,6 @@ jobs:
         DEBUG_CHANNEL_ID: ${{ secrets.DEBUG_CHANNEL_ID }}
         ALEX_USER_ID: ${{ secrets.ALEX_USER_ID }}
         JAMES_USER_ID: ${{ secrets.JAMES_USER_ID }}
-        JIAWEI_USER_ID: "temp_id"
+        JIAWEI_USER_ID: 12345
       run: |
         pytest ${{ github.workspace }}/.github/workflows/tests.py --doctest-modules 
