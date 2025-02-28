@@ -1,6 +1,7 @@
 from discord.ext import tasks
 from zoneinfo import ZoneInfo
 from datetime import datetime, timedelta, time
+from consts import JIAWEI_ID
 
 import consts
 import youtube
@@ -32,7 +33,8 @@ async def send_daily_msg(bot):
   daily_weather = "{0} Currently it is {1}.".format(res, condition)
   j_res, j_condition, _, j_err = weather.get_weather("Los Angeles")
   daily_james_weather = "For James, {0} Currently it is {1} :) .".format(j_res, j_condition)
-  msg = "{0}\n{1}\n{2}\n{3}\n{4}".format(greeting, daily_word_msg, daily_yt_vid, daily_weather, daily_james_weather)
+  jiawei_roast = "<@!{0}>, for the love of god, please finish the fucking Japan video.".format(JIAWEI_ID)
+  msg = "{0}\n{1}\n{2}\n{3}\n{4}\n\n\n{5}".format(greeting, daily_word_msg, daily_yt_vid, daily_weather, daily_james_weather, jiawei_roast)
   gif_url = gifgenerate.generate_gif()
 
   await ctx.send(msg)

@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 from discord import File
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone, timedelta, date
 import asyncio
 
 import consts
@@ -228,6 +228,15 @@ async def usage(ctx):
 async def goon(ctx):
   await ctx.send("https://tenor.com/view/jarvis-iron-man-goon-gif-5902471035652079804")
 
+@bot.hybrid_command(name="jiawei", description="Where's the japan video Jiawei?")
+async def roast_jiawei(ctx):
+  japan_return_date = date(2023, 9, 7)
+  today = date.today()
+
+  num_days = abs((today - japan_return_date).days)
+
+  await ctx.send("It's been about {0} days that <@!{1}> has stalled making the Japan video :JiaweiOOO:".format(num_days, consts.JIAWEI_ID))
+
 
 @bot.event
 async def on_message(message):
@@ -267,6 +276,10 @@ async def on_message(message):
 
   # ignore messages that don't mention the bot
   if not bot.user.mentioned_in(message):
+    return
+
+  if message.author.id == consts.ALEX_ID: # Jiawei roast message if he tries to mention the bot. 
+    await message.channel.send("Please finish the Japan video <@!{0}>".format(consts.JIAWEI_ID))
     return
 
   ctx = await bot.get_context(message)  
