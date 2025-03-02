@@ -278,7 +278,7 @@ async def on_message(message):
   if not bot.user.mentioned_in(message):
     return
 
-  if message.author.id == consts.ALEX_ID: # Jiawei roast message if he tries to mention the bot. 
+  if message.author.id == consts.JIAWEI_ID: # Jiawei roast message if he tries to mention the bot. 
     await message.channel.send("Please finish the Japan video <@!{0}>".format(consts.JIAWEI_ID))
     return
 
