@@ -254,7 +254,7 @@ async def boga_wallet(ctx):
 @bot.hybrid_command(name="boga-board", description="Top boga buck farmers.")
 async def boga_board(ctx):
   response = sql_queries.get_leaderboard()
-  await ctx.send(response)
+  await ctx.send(response, allowed_mentions=discord.AllowedMentions.none())
 
 @bot.hybrid_command(name="features", description="Request a feature for the bot.")
 async def features(ctx):
