@@ -153,9 +153,9 @@ def log_cost(user_id: int, type: str, cost: float):
     cursor.close()
     conn.close()
 
-# make function to check if user has already rolled, if so, return already rolled, else return roll that they did. 
+# apply_roll updates the track_roll and boga_bucks tables with the user's roll amount if they haven't already rolled today.
 
-def check_if_rolled(user_id: int, roll: int):
+def apply_roll(user_id: int, roll: int):
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
     
@@ -219,7 +219,7 @@ def check_if_rolled(user_id: int, roll: int):
 
     return return_message
 
-def reset_user_rolls(): # On 12:00am PST, reset all user rolls to 0.
+def reset_rolls(): # On 12:00am PST, reset all user rolls to 0.
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
 
@@ -249,7 +249,7 @@ def reset_user_rolls(): # On 12:00am PST, reset all user rolls to 0.
     cursor.close()
     conn.close()
 
-def check_user_boga_bucks(user_id: int):
+def get_boga_bucks(user_id: int):
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
 
