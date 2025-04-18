@@ -38,6 +38,23 @@ cursor.execute((
 ))
 conn.commit()
 
+cursor.execute((
+    "CREATE TABLE IF NOT EXISTS track_roll("
+    "    user_id INTEGER PRIMARY KEY,"
+    "    roll INTEGER,"
+    "    streak INTEGER DEFAULT 0"
+    ")"
+))
+conn.commit()
+
+cursor.execute((
+    "CREATE TABLE IF NOT EXISTS boga_bucks("
+    "    user_id INTEGER PRIMARY KEY,"
+    "    boga_bucks INTEGER"
+    ")"
+))
+conn.commit()
+
 cursor.close()
 conn.close()
 
@@ -135,6 +152,148 @@ def log_cost(user_id: int, type: str, cost: float):
     conn.commit()
     cursor.close()
     conn.close()
+
+# apply_roll updates the track_roll and boga_bucks tables with the user's roll amount if they haven't already rolled today.
+
+def apply_roll(user_id: int, roll: int):
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    
+    cursor.execute((
+        "SELECT\n"
+        "   user_id,\n"
+        "   roll\n"
+        "   FROM track_roll\n"
+        "   WHERE user_id=?"
+        ), (user_id,)
+    )
+
+    return_message = ""
+    rows = cursor.fetchall()
+    if len(rows) == 0: # new roll, hasn't rolled before. 
+        cursor.execute((
+            "INSERT INTO track_roll(\n"
+            "   user_id,\n"
+            "   roll,\n"
+            "   streak\n"
+            ") VALUES(?, ?, ?)"
+            ), (user_id, 1, 0)
+        )
+        conn.commit()
+
+        cursor.execute((
+            "INSERT INTO boga_bucks(\n"
+            "   user_id,\n"
+            "   boga_bucks\n"
+            ") VALUES(?, ?)"
+            ), (user_id, roll)
+        )
+        conn.commit()
+        return_message = "You earned `{}` Boga Bucks!".format(roll)
+    else: #user has rolled at some point, check if they rolled this roll.
+        if rows[0][1] == 1:
+            return_message = "You already rolled today. Try again after reset! (12:00am PST)"
+        else:
+            cursor.execute((
+                "UPDATE track_roll\n"
+                "SET\n"
+                "   roll = 1\n"
+                "WHERE user_id = ?"
+                ), (user_id,)
+            )
+            conn.commit()
+            
+            # update boga bucks table with new roll for boga_bucks field.
+            cursor.execute((
+                "UPDATE boga_bucks\n"
+                "SET\n"
+                "    boga_bucks = boga_bucks + ?\n"
+                "WHERE user_id = ?"
+                ), (roll, user_id)
+            )
+            conn.commit()
+            return_message = "You earned `{}` Boga Bucks!".format(roll)
+            
+    cursor.close()
+    conn.close()
+
+    return return_message
+
+def reset_rolls(): # On 12:00am PST, reset all user rolls to 0.
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+
+    # First update streaks for users who rolled (roll = 1)
+    cursor.execute((
+        "UPDATE track_roll\n"
+        "SET streak = streak + 1\n"
+        "WHERE roll = 1"
+    ))
+    conn.commit()
+
+    # Reset streaks to 0 for users who didn't roll (roll = 0)
+    cursor.execute((
+        "UPDATE track_roll\n"
+        "SET streak = 0\n"
+        "WHERE roll = 0"
+    ))
+    conn.commit()
+
+    # Finally, reset all rolls back to 0
+    cursor.execute((
+        "UPDATE track_roll\n"
+        "SET roll = 0"
+    ))
+    conn.commit()
+    
+    cursor.close()
+    conn.close()
+
+def get_boga_bucks(user_id: int):
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+
+    cursor.execute((
+        "SELECT\n"
+        "   boga_bucks\n"
+        "FROM boga_bucks\n"
+        "WHERE user_id=?"
+        ), (user_id,)
+    )
+    rows = cursor.fetchall()
+    cursor.close()
+    conn.close()
+
+    if len(rows) == 0:
+        return 0
+    
+    return rows[0][0]
+
+def get_leaderboard():
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+
+    cursor.execute((
+        "SELECT\n"
+        "   user_id,\n"
+        "   boga_bucks\n"
+        "FROM boga_bucks\n"
+        "ORDER BY\n"
+        "   boga_bucks DESC\n"
+    ))
+    rows = cursor.fetchall()
+    cursor.close()
+    conn.close()
+
+    if len(rows) == 0:
+        return "Nobody has rolled yet!"
+    
+    response = "Boga Bucks Leaderboard:\n"
+    curr = 1
+    for row in rows: 
+        response += "{0}. <@{1}>: `{2}`\n".format(curr, row[0], row[1])
+        curr += 1
+    return response
 
 def generate_user_bill(user_id: int, month=None, year=None): 
     conn = sqlite3.connect(DB_NAME)

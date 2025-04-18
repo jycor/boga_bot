@@ -18,6 +18,8 @@ import weather
 import chatgpt_api
 import sql_queries
 import mc_server
+import reset_db
+import random
 
 pst = timezone(timedelta(hours=-8))
 intents = discord.Intents.all()
@@ -36,6 +38,7 @@ async def on_ready():
   start_time = datetime.now()
 
   daily_task.send_daily_msg.start(bot)
+  reset_db.reset_db_task.start(bot)
 
   global debug_channel
   debug_channel = bot.get_channel(consts.DEBUG_CH_ID)
@@ -237,6 +240,25 @@ async def roast_jiawei(ctx):
 
   await ctx.send("It's been about {0} days that <@!{1}> has stalled making the Japan video :JiaweiOOO:".format(num_days, consts.JIAWEI_ID))
 
+@bot.hybrid_command(name="roll", description="Roll for Boga Bucks, once a day.")
+async def roll(ctx):
+  random_number = random.randint(0, 5)
+  response = sql_queries.check_if_rolled(ctx.author.id, random_number)
+  await ctx.send(response)
+
+@bot.hybrid_command(name="boga-wallet", description="Check your Boga Bucks balance.")
+async def boga_wallet(ctx):
+  balance = sql_queries.check_user_boga_bucks(ctx.author.id)
+  await ctx.send("You have {0} Boga Bucks!".format(balance))
+
+@bot.hybrid_command(name="boga-board", description="Top boga buck farmers.")
+async def boga_board(ctx):
+  response = sql_queries.get_leaderboard()
+  await ctx.send(response, allowed_mentions=discord.AllowedMentions.none())
+
+@bot.hybrid_command(name="features", description="Request a feature for the bot.")
+async def features(ctx):
+  await ctx.send("Check https://github.com/jycor/boga_bot/issues for feature requests. You can also ping Alex.")
 
 @bot.event
 async def on_message(message):
@@ -272,6 +294,11 @@ async def on_message(message):
     case "/statement":
       response = sql_queries.generate_statement()
       await message.channel.send(response)
+      return
+    case "/reset": # in case daily task fails to run. 
+      if ctx.author.id == consts.ALEX_ID or ctx.author.id == consts.JAMES_ID:
+        sql_queries.reset_user_rolls()
+        await message.channel.send("Reset time, everyone can reroll again!")
       return
 
   # ignore messages that don't mention the bot
