@@ -37,7 +37,7 @@ async def on_ready():
   global start_time
   start_time = datetime.now()
 
-  #daily_task.send_daily_msg.start(bot)
+  daily_task.send_daily_msg.start(bot)
   reset_db.reset_db_task.start(bot)
 
   global debug_channel
