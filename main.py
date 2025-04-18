@@ -243,12 +243,12 @@ async def roast_jiawei(ctx):
 @bot.hybrid_command(name="roll", description="Roll for Boga Bucks, once a day.")
 async def roll(ctx):
   random_number = random.randint(0, 5)
-  response = sql_queries.check_if_rolled(ctx.author.id, random_number)
+  response = sql_queries.apply_roll(ctx.author.id, random_number)
   await ctx.send(response)
 
 @bot.hybrid_command(name="boga-wallet", description="Check your Boga Bucks balance.")
 async def boga_wallet(ctx):
-  balance = sql_queries.check_user_boga_bucks(ctx.author.id)
+  balance = sql_queries.get_boga_bucks(ctx.author.id)
   await ctx.send("You have {0} Boga Bucks!".format(balance))
 
 @bot.hybrid_command(name="boga-board", description="Top boga buck farmers.")
