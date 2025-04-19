@@ -296,8 +296,9 @@ async def on_message(message):
       await message.channel.send(response)
       return
     case "/reset": # in case daily task fails to run. 
+      ctx = await bot.get_context(message)
       if ctx.author.id == consts.ALEX_ID or ctx.author.id == consts.JAMES_ID:
-        sql_queries.reset_user_rolls()
+        sql_queries.reset_rolls()
         await message.channel.send("Reset time, everyone can reroll again!")
       return
 

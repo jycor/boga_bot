@@ -18,6 +18,6 @@ daily_msg_time = time(hour=0, tzinfo=pst)
 @tasks.loop(time=daily_msg_time)
 async def reset_db_task(bot):
   ctx = bot.get_channel(consts.GENERAL_CH_ID) # Change this to real channel to send message to. 
-  sql_queries.reset_user_rolls()
+  sql_queries.reset_rolls()
   await ctx.send("Reset time, everyone can reroll again!")
   # reset db logic here, every day it will reset db at 12:00am PST. 
