@@ -316,7 +316,13 @@ async def ride_the_bus(ctx, bet: int):
       curr_msg = curr_msg[:-2]
       curr_msg += "\nYou can stop betting here by reacting with :octagonal_sign: to take your winnings, or try and bet for more!"
       curr_msg += "\nYou have {0} won so far!".format(winnings)
-    await ctx.send(curr_msg)
+    
+    message = await ctx.send(curr_msg)
+    for reaction in reactions[rounds_idx]:
+      await message.add_reaction(reaction)
+    
+    if rounds_idx > 0:
+      await message.add_reaction("🛑")
 
     try:
       reaction, user = await bot.wait_for("reaction_add", timeout=30.0, check=check)
@@ -353,8 +359,8 @@ async def ride_the_bus(ctx, bet: int):
           else:
             round_win = False
        
-        elif rounds_idx == 2:
-          # third round. 
+        # third round. 
+        elif rounds_idx == 2: 
           card_1, card_2 = cards_pulled[0].get_value(), cards_pulled[1].get_value()
           card_3 = curr_card.get_value()
           
@@ -369,16 +375,16 @@ async def ride_the_bus(ctx, bet: int):
           card_2 = int(card_2)
           card_3 = int(card_3)
 
-          card_range = range(card_1, card_2)
+          card_range = range(min(card_1, card_2), max(card_1, card_2))
           
-          if card_3 in card_range and str(reaction.emoji) == "📥":
+          if str(reaction.emoji) == "📥" and card_3 in card_range:
             round_win = True
-          elif card_3 not in card_range and str(reaction.emoji) == "📤":
+          elif str(reaction.emoji) == "📤" and card_3 not in card_range:
             round_win = True
           else:
             round_win = False
 
-
+        # fourth round. 
         elif rounds_idx == 3:
           suit = curr_card.get_suit()
 
@@ -386,17 +392,16 @@ async def ride_the_bus(ctx, bet: int):
             round_win = True
           else:
             round_win = False
-          # fourth round. 
-          
+        
         curr_msg = ""
         if round_win:
           winnings = bet * multipliers[rounds_idx]
-          curr_msg += "You guessed correctly! It was a {0} of {1}!\n".format(curr_card.get_value(), curr_card.get_suit())
+          curr_msg += "You guessed correctly! It was {0} of {1}!\n".format(curr_card.get_value(), suit_match[curr_card.get_suit()])
           curr_msg += "You have won {0} Boga Bucks!".format(winnings)
           rounds_idx += 1
         else:
           winnings = -bet
-          curr_msg += "You guessed incorrectly! It was a {0} of {1}!\n".format(curr_card.get_value(), curr_card.get_suit())
+          curr_msg += "You guessed incorrectly! It was {0} of {1}!\n".format(curr_card.get_value(), suit_match[curr_card.get_suit()])
           curr_msg += "You have lost {0} Boga Bucks!".format(bet)
         await ctx.send(curr_msg)
         cards_pulled.append(curr_card)
