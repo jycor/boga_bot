@@ -20,6 +20,8 @@ import sql_queries
 import mc_server
 import reset_db
 import random
+import math
+from cards import Deck, Card
 
 pst = timezone(timedelta(hours=-8))
 intents = discord.Intents.all()
@@ -225,11 +227,13 @@ async def usage(ctx):
   await ctx.defer()
   res = sql_queries.get_command_usage()
   await ctx.send(res)
+  sql_queries.log_command("usage")
 
 
 @bot.hybrid_command(name="goon", description="Enter the gooniverse")
 async def goon(ctx):
   await ctx.send("https://tenor.com/view/jarvis-iron-man-goon-gif-5902471035652079804")
+  sql_queries.log_command("goon")
 
 @bot.hybrid_command(name="jiawei", description="Where's the japan video Jiawei?")
 async def roast_jiawei(ctx):
@@ -237,28 +241,187 @@ async def roast_jiawei(ctx):
   today = date.today()
 
   num_days = abs((today - japan_return_date).days)
-
+  sql_queries.log_command("jiawei")
   await ctx.send("It's been about {0} days that <@!{1}> has stalled making the Japan video :JiaweiOOO:".format(num_days, consts.JIAWEI_ID))
+  
 
 @bot.hybrid_command(name="roll", description="Roll for Boga Bucks, once a day.")
 async def roll(ctx):
   random_number = random.randint(0, 5)
   response = sql_queries.apply_roll(ctx.author.id, random_number)
   await ctx.send(response)
+  sql_queries.log_command("roll")
 
 @bot.hybrid_command(name="boga-wallet", description="Check your Boga Bucks balance.")
 async def boga_wallet(ctx):
   balance = sql_queries.get_boga_bucks(ctx.author.id)
   await ctx.send("You have {0} Boga Bucks!".format(balance))
+  sql_queries.log_command("boga-wallet")
 
 @bot.hybrid_command(name="boga-board", description="Top boga buck farmers.")
 async def boga_board(ctx):
   response = sql_queries.get_leaderboard()
   await ctx.send(response, allowed_mentions=discord.AllowedMentions.none())
+  sql_queries.log_command("boga-board")
+
+@bot.hybrid_command(name="ride-the-bus", description="Ride the bus. Bet your Boga Bucks.")
+async def ride_the_bus(ctx, bet: int):
+  # Start a game of ride. 2x red or black. 3x higher or lower. 4x inside or outside. 20x suit.
+  # after red or black, keep previous card's value to compare for higher or lower.
+  # keep last 2 values to compare for inside or outside. this is where we check if next card pulled is inside the values of 2 prev or not. 
+  # lastly guess the suit to get 20x. independent of previous cards. 
+
+  # Before we do anything though, check if bet is within bounds.
+
+  bet = math.ceil(bet) 
+  balance = sql_queries.get_boga_bucks(ctx.author.id)
+  if bet < 1 or bet > balance:
+    await ctx.send("You do not have enough to bet that much. You have {0} Boga Bucks.".format(balance))
+    return
+  
+  rounds = [
+    "Pick a color: red or black, react to this message with :red_circle: or :black_circle:.",
+    "Pick a value: higher or lower, react to this message with :arrow_up: or :arrow_down:.",
+    "Pick a position: inside or outside, react to this message with :inbox_tray: or :outbox_tray:.",
+    "Guess the suit: hearts, diamonds, clubs, or spades, react to this message with :heart: or :diamonds: or :clubs: or :spades:."
+  ]
+
+  multipliers = [2, 3, 4, 20]
+
+  winnings = 0 # if this is 0 at end, subtract bet from balance. 
+  deck = Deck()
+  rounds_idx = 0
+
+  reactions = [ ["🔴", "⚫"] ,  ["⬆️", "⬇️"],  ["📥", "📤"],  ["♥️", "♦️", "♣️", "♠️"]]
+  cards_pulled = []
+
+  color_match = {"🔴": ["hearts", "diamonds"], "⚫": ["clubs", "spades"]}
+  
+  face_values = {"J": 11, "Q": 12, "K": 13, "A": 14} # not sure how this works for Ace yet, probably need to do both ranges...?
+
+  suit_match = {"hearts": "♥️", "diamonds": "♦️", "clubs": "♣️", "spades": "♠️"}
+
+  def check(reaction, user): # pass this with each round index.
+    return user == ctx.author
+  
+  while winnings >= 0 and rounds_idx < len(rounds):
+    curr_card = deck.pull_card()
+
+    curr_msg = "<@!{0}>\n".format(ctx.author.id)
+    curr_msg += rounds[rounds_idx]
+    if rounds_idx > 0:
+      curr_msg += "\nPrevious cards: "
+      for card in cards_pulled:
+        curr_msg += "{0}, ".format(card.get_card())
+      curr_msg = curr_msg[:-2]
+      curr_msg += "\nYou can stop betting here by reacting with :octagonal_sign: to take your winnings, or try and bet for more!"
+      curr_msg += "\nYou have {0} won so far!".format(winnings)
+    await ctx.send(curr_msg)
+
+    try:
+      reaction, user = await bot.wait_for("reaction_add", timeout=30.0, check=check)
+      
+      if str(reaction.emoji) == "🛑" and rounds_idx > 0:
+        await ctx.send("You stopped betting. You won {0} Boga Bucks!".format(winnings))
+        break
+      
+      round_win = False
+      if str(reaction.emoji) in reactions[rounds_idx]:
+        # continue betting. 
+        if rounds_idx == 0: # red or black. 
+          if curr_card.get_suit() in color_match[str(reaction.emoji)]:
+            round_win = True
+          else:
+            round_win = False
+            
+        # second round.
+        elif rounds_idx == 1:
+          card_1, card_2 = cards_pulled[0].get_value(), curr_card.get_value()
+          
+          if card_1 in face_values:
+            card_1 = face_values[card_1]
+          if card_2 in face_values:
+            card_2 = face_values[card_2]
+          
+          card_1 = int(card_1)
+          card_2 = int(card_2)
+
+          if card_1 < card_2 and str(reaction.emoji) == "⬆️":
+            round_win = True
+          elif card_1 > card_2 and str(reaction.emoji) == "⬇️":
+            round_win = True
+          else:
+            round_win = False
+       
+        elif rounds_idx == 2:
+          # third round. 
+          card_1, card_2 = cards_pulled[0].get_value(), cards_pulled[1].get_value()
+          card_3 = curr_card.get_value()
+          
+          if card_1 in face_values:
+            card_1 = face_values[card_1]
+          if card_2 in face_values:
+            card_2 = face_values[card_2]
+          if card_3 in face_values:
+            card_3 = face_values[card_3]
+          
+          card_1 = int(card_1)
+          card_2 = int(card_2)
+          card_3 = int(card_3)
+
+          card_range = range(card_1, card_2)
+          
+          if card_3 in card_range and str(reaction.emoji) == "📥":
+            round_win = True
+          elif card_3 not in card_range and str(reaction.emoji) == "📤":
+            round_win = True
+          else:
+            round_win = False
+
+
+        elif rounds_idx == 3:
+          suit = curr_card.get_suit()
+
+          if suit_match[suit] == str(reaction.emoji):
+            round_win = True
+          else:
+            round_win = False
+          # fourth round. 
+          
+        curr_msg = ""
+        if round_win:
+          winnings = bet * multipliers[rounds_idx]
+          curr_msg += "You guessed correctly! It was a {0} of {1}!\n".format(curr_card.get_value(), curr_card.get_suit())
+          curr_msg += "You have won {0} Boga Bucks!".format(winnings)
+          rounds_idx += 1
+        else:
+          winnings = -bet
+          curr_msg += "You guessed incorrectly! It was a {0} of {1}!\n".format(curr_card.get_value(), curr_card.get_suit())
+          curr_msg += "You have lost {0} Boga Bucks!".format(bet)
+        await ctx.send(curr_msg)
+        cards_pulled.append(curr_card)
+
+        if not round_win:
+          break
+
+      else:
+        # invalid reaction. 
+        await ctx.send("Invalid reaction. Cancelling game. Your bet has been returned.")
+        break
+
+    except asyncio.TimeoutError:
+      await ctx.send("You took too long to respond. Game over. Your bet has been returned.")
+      break
+  
+  sql_queries.add_boga_bucks(ctx.author.id, winnings)
+  await ctx.send("You finished gambling! You now have {0} Boga Bucks.".format(sql_queries.get_boga_bucks(ctx.author.id)))
+
+  sql_queries.log_command("ride-the-bus")
 
 @bot.hybrid_command(name="features", description="Request a feature for the bot.")
 async def features(ctx):
   await ctx.send("Check https://github.com/jycor/boga_bot/issues for feature requests. You can also ping Alex.")
+  sql_queries.log_command("features")
 
 @bot.event
 async def on_message(message):

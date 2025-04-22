@@ -269,6 +269,21 @@ def get_boga_bucks(user_id: int):
     
     return rows[0][0]
 
+def add_boga_bucks(user_id: int, amount: int):
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+
+    cursor.execute((
+                "UPDATE boga_bucks\n"
+                "SET\n"
+                "    boga_bucks = boga_bucks + ?\n"
+                "WHERE user_id = ?"
+                ), (amount, user_id)
+            )
+    conn.commit()
+    cursor.close()
+    conn.close()
+
 def get_leaderboard():
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
