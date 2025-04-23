@@ -301,8 +301,7 @@ async def ride_the_bus(ctx, bet: int):
 
   suit_match = {"hearts": "♥️", "diamonds": "♦️", "clubs": "♣️", "spades": "♠️"}
 
-  def check(reaction, user): # pass this with each round index.
-    return user == ctx.author
+  sql_queries.add_boga_bucks(ctx.author.id, -bet) # subtract bet from balance.
   
   while winnings >= 0 and rounds_idx < len(rounds):
     curr_card = deck.pull_card()
@@ -325,7 +324,7 @@ async def ride_the_bus(ctx, bet: int):
       await message.add_reaction("🛑")
 
     try:
-      reaction, user = await bot.wait_for("reaction_add", timeout=30.0, check=check)
+      reaction, user = await bot.wait_for("reaction_add", timeout=30.0, check=lambda r, user: user == ctx.author and r.message.id == message.id and r.emoji in (reactions[rounds_idx] + ["🛑"]))
       
       if str(reaction.emoji) == "🛑" and rounds_idx > 0:
         await ctx.send("You stopped betting. You won {0} Boga Bucks!".format(winnings))
@@ -342,6 +341,12 @@ async def ride_the_bus(ctx, bet: int):
             
         # second round.
         elif rounds_idx == 1:
+
+          while curr_card.get_value() == cards_pulled[0].get_value(): # in case of same value, just keep repulling card. 
+            new_card = deck.pull_card()
+            deck.add_card(curr_card)
+            curr_card = new_card
+
           card_1, card_2 = cards_pulled[0].get_value(), curr_card.get_value()
           
           if card_1 in face_values:
@@ -360,7 +365,7 @@ async def ride_the_bus(ctx, bet: int):
             round_win = False
        
         # third round. 
-        elif rounds_idx == 2: 
+        elif rounds_idx == 2:  # need to keep repulling card if the value is same. 
           card_1, card_2 = cards_pulled[0].get_value(), cards_pulled[1].get_value()
           card_3 = curr_card.get_value()
           
@@ -375,7 +380,7 @@ async def ride_the_bus(ctx, bet: int):
           card_2 = int(card_2)
           card_3 = int(card_3)
 
-          card_range = range(min(card_1, card_2), max(card_1, card_2))
+          card_range = range(min(card_1, card_2) + 1, max(card_1, card_2))
           
           if str(reaction.emoji) == "📥" and card_3 in card_range:
             round_win = True
@@ -400,7 +405,7 @@ async def ride_the_bus(ctx, bet: int):
           curr_msg += "You have won {0} Boga Bucks!".format(winnings)
           rounds_idx += 1
         else:
-          winnings = -bet
+          winnings = 0
           curr_msg += "You guessed incorrectly! It was {0} of {1}!\n".format(curr_card.get_value(), suit_match[curr_card.get_suit()])
           curr_msg += "You have lost {0} Boga Bucks!".format(bet)
         await ctx.send(curr_msg)
@@ -415,7 +420,8 @@ async def ride_the_bus(ctx, bet: int):
         break
 
     except asyncio.TimeoutError:
-      await ctx.send("You took too long to respond. Game over. Your bet has been returned.")
+      winnings = 0
+      await ctx.send("You took too long to respond. Game over. You lost {0} Boga Bucks.".format(bet))
       break
   
   sql_queries.add_boga_bucks(ctx.author.id, winnings)

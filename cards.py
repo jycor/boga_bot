@@ -35,5 +35,8 @@ class Deck:
         self.cards.pop(random_index)
         return card
 
+    def add_card(self, card):
+        self.cards.append(card)
+
 
 reactions = [ [":red_circle:", ":black_circle:"] ,  [":arrow_up:", ":arrow_down:"],  [":inbox_tray:", ":outbox_tray:"],  [":heart:", ":diamonds:", ":clubs:", ":spades:"]]
