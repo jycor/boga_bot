@@ -21,6 +21,8 @@ import mc_server
 import reset_db
 import random
 import math
+import io
+import uuid
 from cards import Deck, Card
 
 pst = timezone(timedelta(hours=-8))
@@ -190,8 +192,13 @@ async def current_weather(ctx, *, args):
 @bot.hybrid_command(name="image", description="Generate an image based on a prompt. THIS COSTS MONEY.")
 async def image(ctx, *, args):
   await ctx.defer()
-  response, err = chatgpt_api.generate_image(ctx.author.id, args)
-  await ctx.send(response)
+  response, err = chatgpt_api.gen_image_gpt(ctx.author.id, args)
+  
+  random_uuid = uuid.uuid4()
+  
+  file = discord.File(io.BytesIO(response), filename=str(random_uuid) + ".png")
+  await ctx.send(file=file)
+
   sql_queries.log_command("image")
   if err:
     global debug_channel
@@ -268,9 +275,7 @@ def is_specific_channel():
     async def predicate(ctx):
         if ctx.channel.id != consts.CHANNEL_ID:
             await ctx.send("This command can only be used in the designated channel.")
-            
         return ctx.channel.id == consts.CHANNEL_ID
-    
     return commands.check(predicate)
 
 @bot.hybrid_command(name="ride-the-bus", description="Ride the bus. Bet your Boga Bucks.")
