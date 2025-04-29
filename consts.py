@@ -15,4 +15,4 @@ OPENAI_API_KEY = os.environ['OPENAI_API_KEY']
 TWITCH_API_KEY = os.environ['TWITCH_API_KEY']
 TWITCH_SECRET = os.environ['TWITCH_SECRET']
 MINECRAFT_SECRET = os.environ['MC_SERVER_ADDR']
-CHANNEL_ID = int(os.environ['CHANNEL_ID'])
+BOGA_BOT_CHANNEL_ID = int(os.environ['CHANNEL_ID'])

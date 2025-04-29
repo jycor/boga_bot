@@ -271,15 +271,15 @@ async def boga_board(ctx):
   await ctx.send(response, allowed_mentions=discord.AllowedMentions.none())
   sql_queries.log_command("boga-board")
 
-def is_specific_channel():
+def is_boga_bot_chat():
     async def predicate(ctx):
-        if ctx.channel.id != consts.CHANNEL_ID:
+        if ctx.channel.id != consts.BOGA_BOT_CHANNEL_ID:
             await ctx.send("This command can only be used in the designated channel.")
-        return ctx.channel.id == consts.CHANNEL_ID
+        return ctx.channel.id == consts.BOGA_BOT_CHANNEL_ID
     return commands.check(predicate)
 
 @bot.hybrid_command(name="ride-the-bus", description="Ride the bus. Bet your Boga Bucks.")
-@is_specific_channel()
+@is_boga_bot_chat()
 async def ride_the_bus(ctx, bet: int):
   # Start a game of ride. 2x red or black. 3x higher or lower. 4x inside or outside. 20x suit.
   # after red or black, keep previous card's value to compare for higher or lower.
