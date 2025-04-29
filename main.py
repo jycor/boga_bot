@@ -21,6 +21,8 @@ import mc_server
 import reset_db
 import random
 import math
+import io
+import uuid
 from cards import Deck, Card
 
 pst = timezone(timedelta(hours=-8))
@@ -190,8 +192,13 @@ async def current_weather(ctx, *, args):
 @bot.hybrid_command(name="image", description="Generate an image based on a prompt. THIS COSTS MONEY.")
 async def image(ctx, *, args):
   await ctx.defer()
-  response, err = chatgpt_api.generate_image(ctx.author.id, args)
-  await ctx.send(response)
+  response, err = chatgpt_api.gen_image_gpt(ctx.author.id, args)
+  
+  random_uuid = uuid.uuid4()
+  
+  file = discord.File(io.BytesIO(response), filename=str(random_uuid) + ".png")
+  await ctx.send(file=file)
+
   sql_queries.log_command("image")
   if err:
     global debug_channel
@@ -264,7 +271,15 @@ async def boga_board(ctx):
   await ctx.send(response, allowed_mentions=discord.AllowedMentions.none())
   sql_queries.log_command("boga-board")
 
+def is_boga_bot_chat():
+    async def predicate(ctx):
+        if ctx.channel.id != consts.BOGA_BOT_CHANNEL_ID:
+            await ctx.send("This command can only be used in the designated channel.")
+        return ctx.channel.id == consts.BOGA_BOT_CHANNEL_ID
+    return commands.check(predicate)
+
 @bot.hybrid_command(name="ride-the-bus", description="Ride the bus. Bet your Boga Bucks.")
+@is_boga_bot_chat()
 async def ride_the_bus(ctx, bet: int):
   # Start a game of ride. 2x red or black. 3x higher or lower. 4x inside or outside. 20x suit.
   # after red or black, keep previous card's value to compare for higher or lower.
@@ -302,6 +317,8 @@ async def ride_the_bus(ctx, bet: int):
   suit_match = {"hearts": "♥️", "diamonds": "♦️", "clubs": "♣️", "spades": "♠️"}
 
   sql_queries.add_boga_bucks(ctx.author.id, -bet) # subtract bet from balance.
+
+  messages = []
   
   while winnings >= 0 and rounds_idx < len(rounds):
     curr_card = deck.pull_card()
@@ -317,6 +334,8 @@ async def ride_the_bus(ctx, bet: int):
       curr_msg += "\nYou have {0} won so far!".format(winnings)
     
     message = await ctx.send(curr_msg)
+    messages.append(message)
+
     for reaction in reactions[rounds_idx]:
       await message.add_reaction(reaction)
     
@@ -327,7 +346,8 @@ async def ride_the_bus(ctx, bet: int):
       reaction, user = await bot.wait_for("reaction_add", timeout=30.0, check=lambda r, user: user == ctx.author and r.message.id == message.id and r.emoji in (reactions[rounds_idx] + ["🛑"]))
       
       if str(reaction.emoji) == "🛑" and rounds_idx > 0:
-        await ctx.send("You stopped betting. You won {0} Boga Bucks!".format(winnings))
+        new_msg = await ctx.send("You stopped betting. You won {0} Boga Bucks!".format(winnings))
+        messages.append(new_msg)
         break
       
       round_win = False
@@ -408,25 +428,30 @@ async def ride_the_bus(ctx, bet: int):
           winnings = 0
           curr_msg += "You guessed incorrectly! It was {0} of {1}!\n".format(curr_card.get_value(), suit_match[curr_card.get_suit()])
           curr_msg += "You have lost {0} Boga Bucks!".format(bet)
-        await ctx.send(curr_msg)
+        
+        new_msg = await ctx.send(curr_msg)
+        messages.append(new_msg)
+
         cards_pulled.append(curr_card)
 
         if not round_win:
           break
 
-      else:
-        # invalid reaction. 
-        await ctx.send("Invalid reaction. Cancelling game. Your bet has been returned.")
-        break
-
     except asyncio.TimeoutError:
       winnings = 0
-      await ctx.send("You took too long to respond. Game over. You lost {0} Boga Bucks.".format(bet))
+      new_msg = await ctx.send("You took too long to respond. Game over. You lost {0} Boga Bucks.".format(bet))
+      messages.append(new_msg)
       break
   
   sql_queries.add_boga_bucks(ctx.author.id, winnings)
-  await ctx.send("You finished gambling! You now have {0} Boga Bucks.".format(sql_queries.get_boga_bucks(ctx.author.id)))
+  await ctx.send("<@!{0}>\n You finished gambling! You now have {1} Boga Bucks.".format(ctx.author.id, sql_queries.get_boga_bucks(ctx.author.id)))
 
+  await asyncio.sleep(20)
+  for msg in messages:
+    message_id = msg.id
+    to_delete = await ctx.fetch_message(message_id)
+    await to_delete.delete()
+    
   sql_queries.log_command("ride-the-bus")
 
 @bot.hybrid_command(name="features", description="Request a feature for the bot.")

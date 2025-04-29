@@ -1,6 +1,7 @@
 from openai import OpenAI
 from consts import OPENAI_API_KEY
 import sql_queries
+import base64
 
 client = OpenAI(
     api_key=OPENAI_API_KEY
@@ -25,7 +26,7 @@ async def generate_chatgpt_response(user_id: int, query: str):
         chat_history.append(user_query)
 
         gpt_response = client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="gpt-4.1-nano",
             messages=chat_history,
         )
 
@@ -60,5 +61,22 @@ def generate_image(user_id: int, query: str):
 
         image_url = response.data[0].url
         return image_url, None
+    except Exception as err:
+        return "There was an error generating your image, please try again later.", err
+
+def gen_image_gpt(user_id: int, query: str):
+    try:
+        img = client.images.generate(
+            model="gpt-image-1",
+            prompt=query,
+            n=1,
+            size="1024x1024",
+            quality="low", # medium is pretty much same as old gen cost. 
+        )
+
+        image_bytes = base64.b64decode(img.data[0].b64_json)
+        sql_queries.log_cost(user_id, "image", IMG_COST)
+        return image_bytes, None
+    
     except Exception as err:
         return "There was an error generating your image, please try again later.", err
